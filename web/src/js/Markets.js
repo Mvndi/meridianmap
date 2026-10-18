@@ -11,6 +11,25 @@ const nice = (value) =>
 const num = (value) => Number(value).toLocaleString("en-US", { maximumFractionDigits: 2 });
 const mapWorld = (world) => world.replace(":", "_");
 
+const DETAIL_LABELS = {
+    equipmentId: "Equipment ID",
+    variation: "Variation",
+    smithingMaterial: "Smithing material",
+    grade: "Smithing grade",
+    sharpness: "Smithing sharpness",
+    quality: "Smithing quality",
+    quenching: "Quenching level",
+    upgrade: "Equipment upgrade",
+    trimPattern: "Armor trim",
+    trimMaterial: "Trim material",
+    durability: "Durability",
+};
+const RAW_DETAILS = new Set(["equipmentId", "variation", "durability"]);
+const detailValue = (key, value) => {
+    if (typeof value === "number") return num(value);
+    return RAW_DETAILS.has(key) ? String(value) : nice(String(value).replace(/^minecraft:/, ""));
+};
+
 const itemName = (offer) => (offer.itemName === offer.item.toUpperCase() ? nice(offer.item) : offer.itemName);
 
 function element(tag, className, text) {
@@ -100,7 +119,15 @@ class Markets {
     }
 
     matches(market, offer, words) {
-        const text = [market.town, offer?.item, offer?.itemName, offer?.seller, ...(offer?.enchants ?? [])]
+        const text = [
+            market.town,
+            offer?.item,
+            offer?.itemName,
+            offer?.seller,
+            ...Object.values(offer?.details ?? {}),
+            ...(offer?.lore ?? []),
+            ...(offer?.enchants ?? []),
+        ]
             .join(" ")
             .toLowerCase()
             .replace(/_/g, " ");
@@ -127,6 +154,10 @@ class Markets {
     }
 
     render() {
+        for (const group of this.list.querySelectorAll(".market-group")) {
+            if (group.open) this.expandedMarkets.add(group.dataset.marketId);
+            else this.expandedMarkets.delete(group.dataset.marketId);
+        }
         const results = this.results();
         this.count.textContent = num(this.visibleMarkets().length);
         this.meta.textContent = this.summary(results);
@@ -183,11 +214,27 @@ class Markets {
         );
         row.append(element("span", "s-who", [market.town, offer?.seller].filter(Boolean).join(" · ")));
         if (offer?.enchants.length) row.append(element("span", "s-who", offer.enchants.map(nice).join(", ")));
+        if (offer) row.append(this.itemDetails(offer));
         row.addEventListener("click", (event) => {
             event.stopPropagation();
             this.focus(market, this.visiblePlot(market), offer);
         });
         return row;
+    }
+
+    itemDetails(offer) {
+        const details = element("span", "market-item-details");
+        for (const [key, label] of Object.entries(DETAIL_LABELS)) {
+            const value = offer.details?.[key];
+            if (value == null) continue;
+            details.append(element("span", "market-item-property", `${label}: ${detailValue(key, value)}`));
+        }
+        if (offer.lore?.length) {
+            const lore = element("span", "market-item-lore");
+            for (const line of offer.lore) lore.append(element("span", "market-lore-line", line || "\u00a0"));
+            details.append(lore);
+        }
+        return details;
     }
 
     visiblePlot(market) {
@@ -201,8 +248,12 @@ class Markets {
         if (!plot || !S.worldList.worlds.has(mapWorld(plot.world))) return;
         S.worldList.showWorld(mapWorld(plot.world), () => {
             const at = this.center(plot);
-            S.map.setView(at, S.worldList.curWorld.zoom.max + 1);
-            L.popup({ className: "m-popup", offset: [0, -2] })
+            S.map.setView(at, S.worldList.curWorld.zoom.max + 1, { animate: false });
+            L.popup({
+                className: "m-popup",
+                offset: [0, -2],
+                maxHeight: Math.max(120, S.map.getSize().y - 100),
+            })
                 .setLatLng(at)
                 .setContent(this.card(market, plot, offer))
                 .openOn(S.map);
@@ -215,6 +266,7 @@ class Markets {
         if (offer) {
             card.append(element("p", "c-line", `${offer.amount}× ${itemName(offer)} · ${num(offer.price)} g`));
             card.append(element("p", "c-line", `Seller: ${offer.seller}`));
+            card.append(this.itemDetails(offer));
             if (offer.enchants.length) card.append(element("p", "c-line", offer.enchants.map(nice).join(", ")));
         }
         card.append(element("p", "c-line", `${market.listings.length} active listings`));
