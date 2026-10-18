@@ -98,10 +98,6 @@ class World {
                     .setMinZoom(0) // extra zoom out doesn't work :(
                     .setMaxZoom(this.zoom.max + this.zoom.extra);
 
-                // update page title
-                document.title =
-                    this.type === "normal" ? "Mvndicraft Map" : `${this.display_name} · Mvndicraft Map`;
-
                 // setup background
                 document.getElementById("map").style.background = this.getBackground();
 
