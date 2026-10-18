@@ -4,6 +4,12 @@ import { S } from "./Squaremap.js";
 const MARKETS_URL = "tiles/markets.json";
 const REFRESH_MS = 15_000;
 const MAX_LISTINGS = 150;
+const MARKET_ICON = L.icon({
+    iconUrl: "images/icon/market.svg",
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    tooltipAnchor: [0, -14],
+});
 const nice = (value) =>
     String(value || "")
         .replace(/_/g, " ")
@@ -102,12 +108,10 @@ class Markets {
             .bindTooltip(`${market.town} market · ${market.listings.length} listings`)
             .on("click", () => this.focus(market, plot))
             .addTo(this.layer);
-        L.circleMarker(this.center(plot), {
-            radius: 5,
-            weight: 2,
-            color: "#1a1403",
-            fillColor: "#ffd700",
-            fillOpacity: 1,
+        L.marker(this.center(plot), {
+            icon: MARKET_ICON,
+            title: `${market.town} market`,
+            alt: `${market.town} market`,
         })
             .bindTooltip(`${market.town} market`)
             .on("click", () => this.focus(market, plot))

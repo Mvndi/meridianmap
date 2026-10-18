@@ -2,6 +2,8 @@ import { Options, Rectangle, PolyLine, Polygon, Circle, Ellipse, Icon } from "./
 import { S } from "../Squaremap.js";
 import L from "leaflet";
 
+const SPAWN_LAYER_ID = "squaremap-spawn_icon";
+
 class World {
     /** @type {string} */
     name;
@@ -130,6 +132,7 @@ class World {
         if (json == null || !(Symbol.iterator in Object(json))) {
             return;
         }
+        json = json.filter((entry) => entry.id !== SPAWN_LAYER_ID);
         const active = new Set(json.map((entry) => entry.id));
         for (const [id, layer] of this.markerLayers) {
             if (active.has(id)) continue;
