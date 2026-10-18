@@ -31,11 +31,17 @@ class PlayerList {
     tick() {
         const update = () => {
             this.updatePlayerList(this.jsonCache.players);
-            const n = this.jsonCache.players.length;
-            const text = `${n} online`;
-            if (S.sidebar.players.legend.textContent !== text) {
-                S.sidebar.players.legend.textContent = text;
-            }
+            const data = this.jsonCache;
+            const visible =
+                data.visible ?? data.players.filter((player) => !player.hidden && Number.isFinite(player.x)).length;
+            const online = data.online ?? data.players.length;
+            const hidden = data.hidden ?? Math.max(0, online - visible);
+            document.getElementById("nav-online").textContent = `${online} online`;
+            const text = `${online} online · ${hidden} hidden`;
+            S.sidebar.players.legend.textContent = text;
+            S.sidebar.players.legend.title = `${visible} visible · ${hidden} hidden from the map`;
+            S.sidebar.playerSummary.textContent = `${visible} visible · ${hidden} hidden from the map`;
+            S.sidebar.onlineCount = online;
         };
         const fetchPlayers = (callback) => {
             S.getJSON(
@@ -121,14 +127,15 @@ class PlayerList {
      */
     setRowState(row, player) {
         row.classList.toggle("is-hidden", player.hidden);
-        row.title = player.hidden ? "Hidden from the map (indoors, underground or invisible)" : "Show this player on the map";
+        row.title = player.hidden ? "Hidden from the map; their location is private" : "Show this player on the map";
         row.dataset.name = `${player.name} ${plainText(player.displayName)}`.toLowerCase();
     }
     sortList() {
         const list = S.sidebar.players.element;
         Array.from(list.children)
             .sort((a, b) => {
-                const ha = a.classList.contains("is-hidden"), hb = b.classList.contains("is-hidden");
+                const ha = a.classList.contains("is-hidden"),
+                    hb = b.classList.contains("is-hidden");
                 if (ha !== hb) return ha ? 1 : -1;
                 return a.querySelector(".pname").textContent.localeCompare(b.querySelector(".pname").textContent);
             })

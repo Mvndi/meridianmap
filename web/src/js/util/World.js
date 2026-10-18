@@ -99,7 +99,8 @@ class World {
                     .setMaxZoom(this.zoom.max + this.zoom.extra);
 
                 // update page title
-                document.title = this.type === "normal" ? "Meridian Earth Map" : `${this.display_name} · Meridian Earth Map`;
+                document.title =
+                    this.type === "normal" ? "Mvndicraft Map" : `${this.display_name} · Mvndicraft Map`;
 
                 // setup background
                 document.getElementById("map").style.background = this.getBackground();
@@ -133,6 +134,12 @@ class World {
         if (json == null || !(Symbol.iterator in Object(json))) {
             return;
         }
+        const active = new Set(json.map((entry) => entry.id));
+        for (const [id, layer] of this.markerLayers) {
+            if (active.has(id)) continue;
+            S.layerControl.removeOverlay(layer);
+            this.markerLayers.delete(id);
+        }
         // iterate layers
         for (const entry of json) {
             // check if layer exists and needs updating
@@ -157,7 +164,7 @@ class World {
             this.markerLayers.set(layer.id, layer);
 
             // setup the layer control
-            if (entry.control === true) {
+            if (entry.control === true || S.mapModes?.isTerritory(layer)) {
                 S.layerControl.addOverlay(entry.name, layer, entry.hide);
             }
 
@@ -187,9 +194,11 @@ class World {
                 }
                 if (marker != null) {
                     marker.addTo(layer);
+                    S.mapModes?.bindMarker(layer, marker);
                 }
             }
         }
+        S.mapModes?.apply();
     }
 }
 

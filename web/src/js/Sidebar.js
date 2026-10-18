@@ -27,7 +27,7 @@ function plainText(html) {
 }
 
 /**
- * Meridian: the right-hand panel. Collapsible sections (toggles, players, shops) and a tab to slide it away.
+ * Meridian: the right-hand panel. Collapsible sections (layers, players, markets) and a tab to slide it away.
  * Keeps the fields the rest of squaremap uses: showSidebar, worlds.element, players.element / players.legend.
  */
 class Sidebar {
@@ -68,6 +68,8 @@ class Sidebar {
             element: document.getElementById("player-list"),
             legend: document.getElementById("player-count"),
         };
+        this.playerSummary = document.getElementById("player-summary");
+        this.onlineCount = 0;
         this.toggleList = document.getElementById("toggle-list");
         this.playerEmpty = document.getElementById("player-empty");
         this.playerSearch = document.getElementById("player-search");
@@ -94,14 +96,24 @@ class Sidebar {
             if (match) shown++;
         }
         this.playerEmpty.hidden = shown > 0;
-        this.playerEmpty.textContent = rows.length === 0 ? "Nobody is online right now." : `Nobody online matches "${q}".`;
+        this.playerEmpty.textContent =
+            rows.length === 0
+                ? this.onlineCount > 0
+                    ? "Online players are hidden from the map."
+                    : "Nobody is online right now."
+                : `Nobody online matches "${q}".`;
     }
-    /** Rebuild the switches from the overlays squaremap registered (relief, players, markers, shops). */
+    /** Rebuild the switches from the overlays squaremap registered (relief, players, markers, markets). */
     renderToggles() {
         const control = S.layerControl.controls;
         if (control == null) return;
         const overlays = control._layers
-            .filter((entry) => entry.overlay)
+            .filter(
+                (entry) =>
+                    entry.overlay &&
+                    !S.mapModes?.isTerritory(entry.layer) &&
+                    S.mapModes?.allowsOverlay(entry.layer) !== false,
+            )
             .sort((a, b) => (a.layer.order ?? 0) - (b.layer.order ?? 0));
         const rows = overlays.map(({ layer, name }) => {
             const id = `toggle-${String(layer.id ?? name).replace(/[^a-z0-9_-]/gi, "_")}`;

@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -22,6 +23,7 @@ import xyz.jpenilla.squaremap.api.Key;
 import xyz.jpenilla.squaremap.api.LayerProvider;
 import xyz.jpenilla.squaremap.api.Point;
 import xyz.jpenilla.squaremap.api.Registry;
+import xyz.jpenilla.squaremap.api.SimpleLayerProvider;
 import xyz.jpenilla.squaremap.api.marker.Circle;
 import xyz.jpenilla.squaremap.api.marker.Ellipse;
 import xyz.jpenilla.squaremap.api.marker.Icon;
@@ -37,6 +39,8 @@ import xyz.jpenilla.squaremap.common.httpd.JsonCache;
 import xyz.jpenilla.squaremap.common.util.Util;
 
 public final class UpdateMarkers implements Runnable {
+    private static final String MARKER_ID = "id";
+    private static final String MARKER_KEYS = "marker_keys";
     private final MapWorldInternal mapWorld;
     private final String jsonPathString;
     private final JsonCache jsonCache;
@@ -72,6 +76,8 @@ public final class UpdateMarkers implements Runnable {
 
             final Map<String, Object> current = this.createMap(key, provider);
             current.put("markers", markers.hashCode());
+            current.put(MARKER_KEYS, provider instanceof SimpleLayerProvider simple
+                ? simple.registeredMarkers().keySet().hashCode() : 0);
 
             final Map<String, Object> previous = this.layerCache.get(key);
 
@@ -127,7 +133,7 @@ public final class UpdateMarkers implements Runnable {
 
     private @NonNull Map<String, Object> serializeLayer(final @NonNull Key key, final @NonNull LayerProvider provider, final @NonNull List<Marker> markers) {
         final Map<String, Object> map = this.createMap(key, provider);
-        map.put("markers", this.serializeMarkers(markers));
+        map.put("markers", this.serializeMarkers(markers, this.markerIdentifiers(provider)));
         return map;
     }
 
@@ -142,17 +148,28 @@ public final class UpdateMarkers implements Runnable {
         return map;
     }
 
-    private @NonNull List<Map<String, Object>> serializeMarkers(final @NonNull Collection<Marker> markers) {
+    private @NonNull List<Map<String, Object>> serializeMarkers(final @NonNull Collection<Marker> markers, final Map<Marker, String> identifiers) {
         final List<Map<String, Object>> processed = new ArrayList<>();
 
         for (final Marker marker : markers) {
             final Map<String, Object> markerMap = new HashMap<>();
+            if (identifiers.containsKey(marker)) {
+                markerMap.put(MARKER_ID, identifiers.get(marker));
+            }
             populateOptions(markerMap, marker.markerOptions());
             serialize(marker, markerMap);
             processed.add(markerMap);
         }
 
         return processed;
+    }
+
+    private Map<Marker, String> markerIdentifiers(LayerProvider provider) {
+        final Map<Marker, String> identifiers = new IdentityHashMap<>();
+        if (provider instanceof SimpleLayerProvider simple) {
+            simple.registeredMarkers().forEach((key, marker) -> identifiers.put(marker, key.getKey()));
+        }
+        return identifiers;
     }
 
     private static void populateOptions(final @NonNull Map<String, Object> marker, final @NonNull MarkerOptions options) {

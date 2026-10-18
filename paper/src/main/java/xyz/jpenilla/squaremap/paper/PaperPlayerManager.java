@@ -5,6 +5,8 @@ import com.google.inject.Singleton;
 import net.kyori.adventure.text.Component;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,6 +18,8 @@ import xyz.jpenilla.squaremap.common.ServerAccess;
 @DefaultQualifier(NonNull.class)
 @Singleton
 public final class PaperPlayerManager extends AbstractPlayerManager {
+    private static final String VANISHED_METADATA = "vanished";
+    private static final String NPC_METADATA = "NPC";
     public final NamespacedKey hiddenKey;
 
     @Inject
@@ -39,13 +43,13 @@ public final class PaperPlayerManager extends AbstractPlayerManager {
 
     @Override
     public boolean otherwiseHidden(final ServerPlayer player) {
-        final org.bukkit.entity.Player bukkit = player.getBukkitEntity();
-        return bukkit.hasMetadata("NPC") || vanished(bukkit);
+        final Player bukkit = player.getBukkitEntity();
+        return bukkit.hasMetadata(NPC_METADATA) || vanished(bukkit);
     }
 
     /** Meridian: the "vanished" metadata vanish plugins set (SuperVanish, PremiumVanish, EssentialsX, Staff++ and others). */
-    private static boolean vanished(final org.bukkit.entity.Player player) {
-        for (final org.bukkit.metadata.MetadataValue value : player.getMetadata("vanished")) {
+    private static boolean vanished(final Player player) {
+        for (final MetadataValue value : player.getMetadata(VANISHED_METADATA)) {
             if (value.asBoolean()) {
                 return true;
             }

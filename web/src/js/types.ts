@@ -82,6 +82,7 @@ export interface WorldSettings {
 }
 
 export interface PlayerData {
+    hidden?: boolean;
     name: string;
     display_name: string;
     uuid: string;
@@ -95,6 +96,9 @@ export interface PlayerData {
 }
 
 export interface PlayersData {
+    online?: number;
+    visible?: number;
+    hidden?: number;
     players: PlayerData[];
     max: number;
 }

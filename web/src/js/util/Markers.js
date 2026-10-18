@@ -24,11 +24,11 @@ class Marker {
     init() {
         if (this.popup != null) {
             if (this.popup_sticky) {
-                this.marker.on("click", () => {
+                this.marker.on("click", (event) => {
                     L.popup({
                         direction: this.opts.pop("tooltip_direction", "top"),
                     })
-                        .setLatLng(S.toLatLng(S.coordinates.coords.x, S.coordinates.coords.z))
+                        .setLatLng(event.latlng)
                         .setContent(this.popup)
                         .openOn(S.map);
                 });

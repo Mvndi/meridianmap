@@ -49,8 +49,12 @@ class LayerControl {
      * @param hide {boolean}
      */
     addOverlay(name, layer, hide) {
+        layer._defaultHidden = hide;
         this.controls.addOverlay(layer, name);
-        if (this.shouldHide(layer, hide) !== true) {
+        if (
+            S.mapModes?.allowsOverlay(layer) !== false &&
+            (S.mapModes?.isTerritory(layer) || this.shouldHide(layer, hide) !== true)
+        ) {
             layer.addTo(S.map);
         }
         S.sidebar?.renderToggles();
@@ -78,7 +82,7 @@ class LayerControl {
      * @param layer {L.Layer}
      */
     hideLayer(layer) {
-        if (layer !== this.ignoreLayer) {
+        if (layer !== this.ignoreLayer && !S.mapModes?.applying) {
             window.localStorage.setItem(`hide_${layer.id}`, "true");
         }
     }
@@ -86,7 +90,7 @@ class LayerControl {
      * @param layer {L.Layer}
      */
     showLayer(layer) {
-        if (layer !== this.ignoreLayer) {
+        if (layer !== this.ignoreLayer && !S.mapModes?.applying) {
             window.localStorage.setItem(`hide_${layer.id}`, "false");
         }
     }
@@ -115,8 +119,8 @@ class LayerControl {
         this.playersLayer.order = world.player_tracker.priority;
         this.playersLayer.setZIndex(world.player_tracker.z_index);
 
-        // Meridian: chest shops as a switchable layer
-        S.shops?.attach();
+        S.markets?.attach();
+        S.markets?.render();
     }
     /**
      * @param world {World}

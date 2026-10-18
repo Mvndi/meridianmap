@@ -35,6 +35,12 @@ import xyz.jpenilla.squaremap.common.util.Util;
 
 @DefaultQualifier(NonNull.class)
 public final class UpdatePlayers implements Runnable {
+    private static final String ONLINE = "online";
+    private static final String VISIBLE = "visible";
+    private static final String HIDDEN = "hidden";
+    private static final int ONLINE_INDEX = 0;
+    private static final int HIDDEN_INDEX = 1;
+    private static final int COUNT_FIELDS = 2;
     private static final String JSON_PATH = "/tiles/players.json";
 
     private final Provider<ComponentFlattener> flattener;
@@ -75,6 +81,7 @@ public final class UpdatePlayers implements Runnable {
 
     private Map<String, Object> collectData() {
         final List<Object> players = new ArrayList<>();
+        final int[] counts = new int[COUNT_FIELDS];
 
         final HtmlComponentSerializer htmlComponentSerializer = HtmlComponentSerializer.withFlattener(this.flattener.get());
 
@@ -89,12 +96,16 @@ public final class UpdatePlayers implements Runnable {
                 if (this.playerManager.otherwiseHidden(player)) {
                     return;
                 }
+                counts[ONLINE_INDEX]++;
                 // Meridian: hidden from the map (invisible, under a roof, /map hide) but still listed, with no position
-                final boolean hidden = (worldConfig.PLAYER_TRACKER_HIDE_INVISIBLE && player.isInvisible())
+                final boolean hidden = !worldConfig.MAP_ENABLED
+                    || !worldConfig.PLAYER_TRACKER_ENABLED
+                    || (worldConfig.PLAYER_TRACKER_HIDE_INVISIBLE && player.isInvisible())
                     || (worldConfig.PLAYER_TRACKER_HIDE_MAP_INVISIBILITY_EQUIPMENT && hasMapInvisibilityItemEquipped(player))
                     || (worldConfig.PLAYER_TRACKER_HIDE_UNDER_ROOF && underRoof(world, player))
                     || this.playerManager.hidden(player);
                 if (hidden) {
+                    counts[HIDDEN_INDEX]++;
                     if (worldConfig.PLAYER_TRACKER_LIST_HIDDEN) {
                         final Map<String, Object> entry = new HashMap<>();
                         entry.put("name", player.getGameProfile().name());
@@ -133,6 +144,9 @@ public final class UpdatePlayers implements Runnable {
 
         final Map<String, Object> map = new HashMap<>();
 
+        map.put(ONLINE, counts[ONLINE_INDEX]);
+        map.put(VISIBLE, counts[ONLINE_INDEX] - counts[HIDDEN_INDEX]);
+        map.put(HIDDEN, counts[HIDDEN_INDEX]);
         map.put("players", players);
         map.put("max", this.serverAccess.maxPlayers());
 

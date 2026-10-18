@@ -48,6 +48,13 @@ public final class Config extends AbstractConfig {
         WEB_ADDRESS = config.getString("settings.web-address", WEB_ADDRESS);
     }
 
+    private static final String MARKET_UPDATE_PATH = "settings.markets.update-interval-seconds";
+    public static int MARKET_UPDATE_SECONDS = 15;
+
+    private static void marketSettings() {
+        MARKET_UPDATE_SECONDS = Math.max(5, Math.min(300, config.getInt(MARKET_UPDATE_PATH, MARKET_UPDATE_SECONDS)));
+    }
+
     public static String WEB_DIR = "web";
     public static boolean UPDATE_WEB_DIR = true;
 
