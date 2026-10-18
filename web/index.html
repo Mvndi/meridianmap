@@ -33,43 +33,295 @@
         <link rel="icon" href="images/favicon.png" sizes="64x64" type="image/png" />
         <link rel="apple-touch-icon" href="images/logo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Silkscreen&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
-        />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Metamorphous&display=swap" />
         <script type="module" src="src/js/Squaremap.js"></script>
     </head>
     <body>
         <header id="topbar">
-            <div class="brand-group">
-                <a class="brand" href="https://mvndicraft.net/" aria-label="Mvndicraft home">
-                    <img src="images/mvndicraft-logo.png" alt="Mvndicraft" width="154" height="48" />
-                </a>
-                <button id="copy-server" type="button" title="Copy mc.mvndicraft.net" aria-label="Copy server address">
-                    <span class="online-dot" aria-hidden="true">●</span><span id="nav-online">Connecting…</span>
-                </button>
+            <div class="social-bar social-desktop">
+                <div class="social-inner">
+                    <div class="social-group">
+                        <a
+                            href="https://x.com/MVNDlCRAFT"
+                            target="_blank"
+                            rel="noreferrer"
+                            class="social-icon"
+                            aria-label="Follow on Twitter"
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                    d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                                />
+                            </svg>
+                        </a>
+                        <a
+                            href="https://www.youtube.com/@mvndicraft4233"
+                            target="_blank"
+                            rel="noreferrer"
+                            class="social-icon"
+                            aria-label="Follow on YouTube"
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                    d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+                                />
+                            </svg>
+                        </a>
+                        <a
+                            href="https://mvndi.ffm.to/symphoniaemvndi"
+                            target="_blank"
+                            rel="noreferrer"
+                            class="social-icon"
+                            aria-label="Listen to Symphoniae Mvndi playlist"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M9 18V5l12-2v13" />
+                                <circle cx="6" cy="18" r="3" />
+                                <circle cx="18" cy="16" r="3" />
+                            </svg>
+                        </a>
+                    </div>
+                    <div class="social-group">
+                        <a
+                            href="https://discord.com/invite/2BP6h8Ssta"
+                            target="_blank"
+                            rel="noreferrer"
+                            class="social-link"
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 48 48"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M40.634 8.31121C37.5747 6.90744 34.294 5.87321 30.8638 5.28087C30.8013 5.26943 30.7389 5.298 30.7067 5.35514C30.2848 6.10557 29.8175 7.08457 29.4902 7.85406C25.8008 7.30172 22.1304 7.30172 18.5166 7.85406C18.1893 7.06747 17.705 6.10557 17.2811 5.35514C17.249 5.29991 17.1866 5.27134 17.1241 5.28087C13.6958 5.87132 10.4151 6.90555 7.35387 8.31121C7.32737 8.32263 7.30465 8.3417 7.28958 8.36644C1.06678 17.6632 -0.6379 26.7314 0.19836 35.6872C0.202144 35.731 0.22674 35.7729 0.260796 35.7995C4.36642 38.8146 8.34341 40.645 12.2466 41.8583C12.309 41.8773 12.3752 41.8545 12.415 41.803C13.3383 40.5422 14.1613 39.2127 14.867 37.8146C14.9086 37.7328 14.8688 37.6356 14.7837 37.6032C13.4783 37.108 12.2352 36.5042 11.0395 35.8186C10.9449 35.7634 10.9373 35.6281 11.0243 35.5633C11.2759 35.3748 11.5276 35.1786 11.7679 34.9805C11.8114 34.9443 11.872 34.9367 11.9231 34.9595C19.7786 38.5461 28.2831 38.5461 36.0459 34.9595C36.097 34.9348 36.1576 34.9424 36.203 34.9786C36.4433 35.1767 36.6949 35.3748 36.9484 35.5633C37.0354 35.6281 37.0298 35.7634 36.9352 35.8186C35.7394 36.5176 34.4964 37.108 33.189 37.6014C33.1039 37.6337 33.0661 37.7328 33.1077 37.8146C33.8285 39.2108 34.6515 40.5402 35.5578 41.8012C35.5956 41.8545 35.6637 41.8773 35.7262 41.8583C39.6483 40.645 43.6252 38.8146 47.7309 35.7995C47.7668 35.7729 47.7895 35.7329 47.7933 35.6891C48.7942 25.3352 46.117 16.3413 40.6964 8.36833C40.6832 8.3417 40.6605 8.32263 40.634 8.31121ZM16.04 30.234C13.675 30.234 11.7263 28.0627 11.7263 25.3962C11.7263 22.7296 13.6372 20.5583 16.04 20.5583C18.4617 20.5583 20.3916 22.7487 20.3538 25.3962C20.3538 28.0627 18.4428 30.234 16.04 30.234ZM31.9895 30.234C29.6245 30.234 27.6758 28.0627 27.6758 25.3962C27.6758 22.7296 29.5867 20.5583 31.9895 20.5583C34.4113 20.5583 36.3411 22.7487 36.3033 25.3962C36.3033 28.0627 34.4113 30.234 31.9895 30.234Z"
+                                />
+                            </svg>
+                            Discord
+                        </a>
+                        <a href="https://map.mvndicraft.net/" target="_blank" rel="noreferrer" class="social-link">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"
+                                />
+                                <path d="M15 5.764v15" />
+                                <path d="M9 3.236v15" />
+                            </svg>
+                            Map
+                        </a>
+                    </div>
+                </div>
             </div>
-            <button
-                id="nav-toggle"
-                type="button"
-                aria-label="Toggle navigation"
-                aria-controls="site-navigation"
-                aria-expanded="false"
-            >
-                ☰
-            </button>
-            <nav id="site-navigation" class="links" aria-label="Mvndicraft sites">
-                <a href="https://mvndicraft.net/">Home</a>
-                <a
-                    href="https://www.planetminecraft.com/server/mvndicraft-medieval-geopol/"
-                    target="_blank"
-                    rel="noreferrer"
-                    >Vote</a
-                >
-                <a href="https://wiki.mvndicraft.net/rules.html" target="_blank" rel="noreferrer">Rules</a>
-                <a href="https://wiki.mvndicraft.net/" class="nav-wiki" target="_blank" rel="noreferrer">Wiki</a>
-                <a href="https://store.mvndicraft.net/" class="nav-store" target="_blank" rel="noreferrer">Store</a>
-            </nav>
+
+            <div class="social-bar social-mobile">
+                <div class="social-mobile-inner">
+                    <a
+                        href="https://mvndi.ffm.to/symphoniaemvndi"
+                        target="_blank"
+                        rel="noreferrer"
+                        class="social-icon"
+                        aria-label="Listen to Symphoniae Mvndi"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M9 18V5l12-2v13" />
+                            <circle cx="6" cy="18" r="3" />
+                            <circle cx="18" cy="16" r="3" />
+                        </svg>
+                    </a>
+                    <a
+                        href="https://discord.com/invite/2BP6h8Ssta"
+                        target="_blank"
+                        rel="noreferrer"
+                        class="social-link"
+                    >
+                        <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 48 48"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M40.634 8.31121C37.5747 6.90744 34.294 5.87321 30.8638 5.28087C30.8013 5.26943 30.7389 5.298 30.7067 5.35514C30.2848 6.10557 29.8175 7.08457 29.4902 7.85406C25.8008 7.30172 22.1304 7.30172 18.5166 7.85406C18.1893 7.06747 17.705 6.10557 17.2811 5.35514C17.249 5.29991 17.1866 5.27134 17.1241 5.28087C13.6958 5.87132 10.4151 6.90555 7.35387 8.31121C7.32737 8.32263 7.30465 8.3417 7.28958 8.36644C1.06678 17.6632 -0.6379 26.7314 0.19836 35.6872C0.202144 35.731 0.22674 35.7729 0.260796 35.7995C4.36642 38.8146 8.34341 40.645 12.2466 41.8583C12.309 41.8773 12.3752 41.8545 12.415 41.803C13.3383 40.5422 14.1613 39.2127 14.867 37.8146C14.9086 37.7328 14.8688 37.6356 14.7837 37.6032C13.4783 37.108 12.2352 36.5042 11.0395 35.8186C10.9449 35.7634 10.9373 35.6281 11.0243 35.5633C11.2759 35.3748 11.5276 35.1786 11.7679 34.9805C11.8114 34.9443 11.872 34.9367 11.9231 34.9595C19.7786 38.5461 28.2831 38.5461 36.0459 34.9595C36.097 34.9348 36.1576 34.9424 36.203 34.9786C36.4433 35.1767 36.6949 35.3748 36.9484 35.5633C37.0354 35.6281 37.0298 35.7634 36.9352 35.8186C35.7394 36.5176 34.4964 37.108 33.189 37.6014C33.1039 37.6337 33.0661 37.7328 33.1077 37.8146C33.8285 39.2108 34.6515 40.5402 35.5578 41.8012C35.5956 41.8545 35.6637 41.8773 35.7262 41.8583C39.6483 40.645 43.6252 38.8146 47.7309 35.7995C47.7668 35.7729 47.7895 35.7329 47.7933 35.6891C48.7942 25.3352 46.117 16.3413 40.6964 8.36833C40.6832 8.3417 40.6605 8.32263 40.634 8.31121ZM16.04 30.234C13.675 30.234 11.7263 28.0627 11.7263 25.3962C11.7263 22.7296 13.6372 20.5583 16.04 20.5583C18.4617 20.5583 20.3916 22.7487 20.3538 25.3962C20.3538 28.0627 18.4428 30.234 16.04 30.234ZM31.9895 30.234C29.6245 30.234 27.6758 28.0627 27.6758 25.3962C27.6758 22.7296 29.5867 20.5583 31.9895 20.5583C34.4113 20.5583 36.3411 22.7487 36.3033 25.3962C36.3033 28.0627 34.4113 30.234 31.9895 30.234Z"
+                            />
+                        </svg>
+                        Discord
+                    </a>
+                    <span class="social-divider">|</span>
+                    <a href="https://map.mvndicraft.net/" target="_blank" rel="noreferrer" class="social-link">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"
+                            />
+                            <path d="M15 5.764v15" />
+                            <path d="M9 3.236v15" />
+                        </svg>
+                        Map
+                    </a>
+                    <span class="social-divider">|</span>
+                    <a
+                        href="https://x.com/mvndicraft"
+                        target="_blank"
+                        rel="noreferrer"
+                        class="social-icon"
+                        aria-label="Twitter"
+                    >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                            />
+                        </svg>
+                    </a>
+                    <span class="social-divider">|</span>
+                    <a
+                        href="https://www.youtube.com/@mvndicraft4233"
+                        target="_blank"
+                        rel="noreferrer"
+                        class="social-icon"
+                        aria-label="YouTube"
+                    >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+                            />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="main-nav">
+                <div class="nav-inner">
+                    <div class="brand-group">
+                        <a class="brand" href="https://mvndicraft.net/" aria-label="Mvndicraft home">
+                            <img src="images/mvndicraft-logo.png" alt="Mvndicraft" width="176" height="56" />
+                        </a>
+                        <button
+                            id="copy-server"
+                            type="button"
+                            title="Copy mc.mvndicraft.net"
+                            aria-label="Copy server address"
+                        >
+                            <span class="online-dot" aria-hidden="true">●</span
+                            ><span id="nav-online">...<span class="nav-online-label">Online players</span></span>
+                        </button>
+                    </div>
+                    <button
+                        id="nav-toggle"
+                        type="button"
+                        aria-label="Toggle navigation"
+                        aria-controls="site-navigation"
+                        aria-expanded="false"
+                    >
+                        <svg
+                            class="nav-menu"
+                            viewBox="0 0 24 24"
+                            width="24"
+                            height="24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg
+                            class="nav-close"
+                            viewBox="0 0 24 24"
+                            width="24"
+                            height="24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            aria-hidden="true"
+                        >
+                            <path d="m18 6-12 12M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <nav id="site-navigation" class="links" aria-label="Mvndicraft sites">
+                        <a href="https://mvndicraft.net/">Home</a>
+                        <a
+                            href="https://www.planetminecraft.com/server/mvndicraft-medieval-geopol/"
+                            target="_blank"
+                            rel="noreferrer"
+                            >Vote</a
+                        >
+                        <a href="https://wiki.mvndicraft.net/rules.html" target="_blank" rel="noreferrer">Rules</a>
+                        <a href="https://wiki.mvndicraft.net/" class="nav-wiki" target="_blank" rel="noreferrer"
+                            >Wiki</a
+                        >
+                        <a href="https://store.mvndicraft.net/" class="nav-store" target="_blank" rel="noreferrer"
+                            ><svg
+                                viewBox="0 0 24 24"
+                                width="16"
+                                height="24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <circle cx="8" cy="21" r="1" />
+                                <circle cx="19" cy="21" r="1" />
+                                <path
+                                    d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                                /></svg
+                            >Store</a
+                        >
+                    </nav>
+                </div>
+            </div>
             <span id="nav-status" class="sr-only" role="status"></span>
         </header>
 

@@ -36,7 +36,6 @@ class PlayerList {
                 data.visible ?? data.players.filter((player) => !player.hidden && Number.isFinite(player.x)).length;
             const online = data.online ?? data.players.length;
             const hidden = data.hidden ?? Math.max(0, online - visible);
-            document.getElementById("nav-online").textContent = `${online} online`;
             const text = `${online} online · ${hidden} hidden`;
             S.sidebar.players.legend.textContent = text;
             S.sidebar.players.legend.title = `${visible} visible · ${hidden} hidden from the map`;

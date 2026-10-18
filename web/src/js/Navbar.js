@@ -1,4 +1,7 @@
 const SERVER_ADDRESS = "mc.mvndicraft.net";
+const STATUS_URL = `https://api.mcsrvstat.us/2/${SERVER_ADDRESS}`;
+const STATUS_INTERVAL_MS = 10000;
+const STATUS_TIMEOUT_MS = 5000;
 
 class Navbar {
     constructor() {
@@ -12,6 +15,25 @@ class Navbar {
             if (!event.target.closest("#topbar")) this.setOpen(false);
         });
         document.getElementById("copy-server").addEventListener("click", () => this.copyAddress());
+        this.updateServerStatus();
+        setInterval(() => this.updateServerStatus(), STATUS_INTERVAL_MS);
+    }
+
+    async updateServerStatus() {
+        try {
+            const response = await fetch(STATUS_URL, { signal: AbortSignal.timeout(STATUS_TIMEOUT_MS) });
+            if (!response.ok) throw new Error("Server status request failed");
+            const data = await response.json();
+            const players = data.players?.online;
+            this.showServerStatus(Number.isInteger(players) && players >= 0 ? players : 0);
+        } catch {
+            this.showServerStatus(0);
+        }
+    }
+
+    showServerStatus(players) {
+        document.getElementById("nav-online").textContent = `${players} Online players`;
+        document.querySelector(".online-dot").classList.toggle("is-online", players > 0);
     }
 
     setOpen(open) {
