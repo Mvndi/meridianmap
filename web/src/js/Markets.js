@@ -3,7 +3,7 @@ import { S } from "./Squaremap.js";
 
 const MARKETS_URL = "tiles/markets.json";
 const REFRESH_MS = 15_000;
-const MAX_ROWS = 150;
+const MAX_LISTINGS = 150;
 const nice = (value) =>
     String(value || "")
         .replace(/_/g, " ")
@@ -23,6 +23,7 @@ function element(tag, className, text) {
 class Markets {
     constructor() {
         this.markets = [];
+        this.expandedMarkets = new Set();
         this.loaded = false;
         this.available = false;
         this.failed = false;
@@ -114,35 +115,63 @@ class Markets {
 
     results() {
         const words = this.input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-        const results = [];
-        for (const market of this.visibleMarkets()) {
-            if (!market.listings.length && this.matches(market, null, words)) results.push({ market });
-            for (const offer of market.listings) {
-                if (this.matches(market, offer, words)) results.push({ market, offer });
-            }
-        }
-        return results.sort(
-            (a, b) =>
-                (a.offer?.price ?? Infinity) / (a.offer?.amount ?? 1) -
-                (b.offer?.price ?? Infinity) / (b.offer?.amount ?? 1),
-        );
+        return this.visibleMarkets()
+            .map((market) => ({
+                market,
+                offers: market.listings
+                    .filter((offer) => this.matches(market, offer, words))
+                    .sort((a, b) => a.price / a.amount - b.price / b.amount),
+            }))
+            .filter(({ market, offers }) => offers.length || this.matches(market, null, words))
+            .sort((a, b) => a.market.town.localeCompare(b.market.town));
     }
 
     render() {
         const results = this.results();
         this.count.textContent = num(this.visibleMarkets().length);
-        this.meta.textContent = this.summary(results.length);
-        this.list.replaceChildren(...results.slice(0, MAX_ROWS).map((result) => this.createRow(result)));
+        this.meta.textContent = this.summary(results);
+        this.list.replaceChildren(...results.map((result) => this.createMarket(result)));
     }
 
-    summary(count) {
+    summary(results) {
         if (this.failed) return "Market information is unavailable. Retrying shortly.";
         if (!this.loaded) return "Loading markets…";
         if (!this.available) return "Market information is unavailable.";
         if (!this.visibleMarkets().length) return "No town markets yet.";
-        if (!count) return "No markets or listings match your search.";
-        const listings = this.visibleMarkets().reduce((total, market) => total + market.listings.length, 0);
-        return `${num(listings)} active listings · cheapest per item first${count > MAX_ROWS ? ` · first ${MAX_ROWS} results` : ""}`;
+        if (!results.length) return "No markets or listings match your search.";
+        const listings = results.reduce((total, result) => total + result.offers.length, 0);
+        return `${num(listings)} matching listings · expand a market to browse`;
+    }
+
+    createMarket({ market, offers }) {
+        const group = element("details", "market-group");
+        group.dataset.marketId = market.id;
+        group.open = this.expandedMarkets.has(market.id);
+        const heading = element("summary", "market-heading");
+        heading.append(element("span", "market-name", `${market.town} market`));
+        heading.append(element("span", "chip", `${offers.length} listings`));
+        group.append(heading, this.createMarketBody(market, offers));
+        group.addEventListener("toggle", () => {
+            if (!group.isConnected) return;
+            if (group.open) this.expandedMarkets.add(market.id);
+            else this.expandedMarkets.delete(market.id);
+        });
+        return group;
+    }
+
+    createMarketBody(market, offers) {
+        const body = element("div", "market-listings");
+        const locate = element("button", "market-locate", "Show market on map");
+        locate.type = "button";
+        locate.addEventListener("click", () => this.focus(market, this.visiblePlot(market)));
+        body.append(locate);
+        body.append(...offers.slice(0, MAX_LISTINGS).map((offer) => this.createRow({ market, offer })));
+        if (!offers.length) body.append(element("p", "empty", "No active listings."));
+        if (offers.length > MAX_LISTINGS)
+            body.append(
+                element("p", "meta", `Showing the first ${MAX_LISTINGS} listings. Refine your search to find more.`),
+            );
+        return body;
     }
 
     createRow({ market, offer }) {

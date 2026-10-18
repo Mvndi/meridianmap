@@ -386,31 +386,46 @@ body.panel-closed #msidebar-toggle svg {
 
 /* worlds */
 .worlds {
-    display: flex;
     margin-bottom: 12px;
-    border: 1px solid var(--line);
 }
 .worlds:empty {
     display: none;
 }
-.wbtn {
-    flex: 1;
-    padding: 8px 6px;
-    background: none;
+.world-picker {
+    border: 1px solid var(--line);
+}
+.world-picker > summary {
+    padding: 10px;
+    cursor: pointer;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+.world-picker .search {
+    width: calc(100% - 16px);
+    margin: 0 8px 8px;
+}
+.world-options {
+    max-height: 210px;
+    overflow-y: auto;
+}
+.world-option {
+    display: block;
+    width: 100%;
+    padding: 10px;
     border: 0;
-    border-right: 1px solid var(--line);
-    font: 500 11px/1 var(--mono);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    border-top: 1px solid var(--line);
+    background: transparent;
+    text-align: left;
     color: var(--body);
     cursor: pointer;
+    overflow-wrap: anywhere;
 }
-.wbtn:last-child {
-    border-right: 0;
+.world-option:hover {
+    background: var(--panel-2);
 }
-.wbtn[aria-pressed="true"] {
-    background: var(--accent);
-    color: var(--on-accent);
+.world-option[aria-pressed="true"] {
+    color: var(--accent);
+    background: var(--accent-soft);
 }
 
 /* toggles */
@@ -924,4 +939,51 @@ body.panel-closed #msidebar-toggle svg {
     .nav-inner {
         min-height: 64px;
     }
+}
+
+.market-group {
+    border-top: 1px solid var(--line);
+}
+.market-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 4px;
+    cursor: pointer;
+    color: var(--text);
+    list-style: none;
+}
+.market-heading::-webkit-details-marker {
+    display: none;
+}
+.market-heading::before {
+    content: "▸";
+    color: var(--muted);
+}
+.market-group[open] > .market-heading::before {
+    content: "▾";
+}
+.market-name {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.market-listings {
+    padding: 0 4px 8px 16px;
+}
+.market-locate {
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    color: var(--accent);
+    background: transparent;
+    border: 1px solid var(--line);
+    cursor: pointer;
+}
+.market-locate:hover {
+    border-color: var(--accent);
+}
+.market-heading:focus-visible,
+.world-picker > summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
 }
