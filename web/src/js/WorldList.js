@@ -22,28 +22,79 @@ class WorldList {
         // sort worlds by order
         this.worlds = new Map([...unorderedMap].sort((a, b) => a[1].order - b[1].order));
 
-        // set up world list link elements (Meridian: only when there is more than one world to switch between)
-        for (const [name, world] of this.worlds.size > 1 ? this.worlds : []) {
-            const link = S.createElement("button", `world-${name}`, this);
-            link.type = "button";
-            link.className = "wbtn";
-            link.onclick = function () {
-                const curWorld = this.parent.curWorld;
-                if (curWorld.name === name) {
-                    S.centerOn(world.spawn.x, world.spawn.z, world.zoom.def);
-                    return;
-                }
-                S.playerList.clearPlayerMarkers();
-                this.parent.loadWorld(name, (world) => {
-                    S.centerOn(world.spawn.x, world.spawn.z, world.zoom.def);
-                });
-            };
-
-            link.appendChild(S.createTextElement("span", world.display_name));
-
-            S.sidebar.worlds.element.appendChild(link);
-        }
+        this.createWorldPicker();
     }
+
+    createWorldPicker() {
+        if (this.worlds.size < 2) return;
+        this.picker = document.createElement("details");
+        this.picker.id = "world-picker";
+        this.picker.className = "world-picker";
+        const heading = document.createElement("summary");
+        this.worldLabel = document.createElement("span");
+        heading.append(this.worldLabel);
+        this.search = document.createElement("input");
+        this.search.id = "world-search";
+        this.search.className = "search";
+        this.search.type = "search";
+        this.search.placeholder = "Find a world";
+        this.search.setAttribute("aria-label", "Find a world");
+        this.options = document.createElement("div");
+        this.options.className = "world-options";
+        this.picker.append(heading, this.search, this.options);
+        S.sidebar.worlds.element.append(this.picker);
+        this.bindWorldPicker();
+    }
+
+    bindWorldPicker() {
+        this.search.addEventListener("input", () => this.renderWorldOptions());
+        this.picker.addEventListener("toggle", () => {
+            if (this.picker.open) this.search.focus();
+        });
+        document.addEventListener("click", (event) => {
+            if (!this.picker.contains(event.target)) this.picker.open = false;
+        });
+        this.picker.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+            this.picker.open = false;
+            this.picker.querySelector("summary").focus();
+        });
+    }
+
+    renderWorldOptions() {
+        if (!this.picker) return;
+        const query = this.search.value.trim().toLowerCase().replace(/[_:]/g, " ");
+        const matches = [...this.worlds.values()].filter((world) =>
+            `${world.display_name} ${world.name}`.toLowerCase().replace(/[_:]/g, " ").includes(query),
+        );
+        const options = matches.map((world) => this.createWorldOption(world));
+        if (!options.length) {
+            const empty = document.createElement("p");
+            empty.className = "empty";
+            empty.textContent = "No worlds match your search.";
+            options.push(empty);
+        }
+        this.options.replaceChildren(...options);
+    }
+
+    createWorldOption(world) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.id = `world-${world.name}`;
+        button.className = "world-option";
+        button.textContent = world.display_name;
+        button.setAttribute("aria-pressed", String(world === this.curWorld));
+        button.addEventListener("click", () => this.selectWorld(world));
+        return button;
+    }
+
+    selectWorld(world) {
+        this.picker.open = false;
+        this.search.value = "";
+        this.showWorld(world.name, () => S.centerOn(world.spawn.x, world.spawn.z, world.zoom.def));
+        this.renderWorldOptions();
+    }
+
     /**
      * @param {World} world
      * @returns {string}
@@ -99,9 +150,8 @@ class WorldList {
         // load new world
         const world = this.worlds.get(name);
         this.curWorld = world;
-        for (const button of S.sidebar.worlds.element.children) {
-            button.setAttribute("aria-pressed", String(button.id === `world-${name}`));
-        }
+        if (this.worldLabel) this.worldLabel.textContent = world.display_name;
+        this.renderWorldOptions();
         world.load(callback);
     }
     /**
