@@ -10,12 +10,16 @@ const RELATIONS = {
     independent: { label: "Independent town", color: "#b797c4" },
 };
 const NONE = "none";
+const INDEPENDENT_COLOR = "#3388ff";
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 const REFRESH_TICKS = 15;
 const COLOR_HASH_OFFSET = 2166136261;
 const COLOR_HASH_PRIME = 16777619;
 const HUE_COUNT = 360;
 
-function religionColor(id) {
+function religionColor(religion) {
+    const id = religion?.id;
+    if (id && id !== NONE && HEX_COLOR.test(religion?.color)) return religion.color;
     if (!id || id === NONE) return "#929dab";
     let hash = COLOR_HASH_OFFSET;
     for (const character of id) hash = Math.imul(hash ^ character.charCodeAt(0), COLOR_HASH_PRIME);
@@ -130,9 +134,13 @@ class MapModes {
     }
 
     territoryColor(town) {
-        if (this.mode === "religion") return religionColor(town.religion?.id);
+        if (this.mode === "religion") return religionColor(town.religion);
         if (this.mode === "diplomacy" && this.selected) return RELATIONS[this.relation(town.nation)].color;
-        return this.nations.get(town.nation)?.color ?? town.color;
+        return this.nations.get(town.nation)?.color ?? this.independentColor();
+    }
+
+    independentColor() {
+        return HEX_COLOR.test(this.data.independent_color) ? this.data.independent_color : INDEPENDENT_COLOR;
     }
 
     apply() {
@@ -182,7 +190,9 @@ class MapModes {
             this.context.textContent = this.selected
                 ? `Relations with ${this.nations.get(this.selected)?.name}. Click territory to change nation.`
                 : "Choose a nation or click its territory to see allies and enemies.";
-        else this.context.textContent = "Town claims coloured by nation. Independent towns keep their own colour.";
+        else
+            this.context.textContent =
+                "Town claims coloured by nation. Independent towns share the default territory colour.";
         this.renderLegend();
     }
 
@@ -193,7 +203,7 @@ class MapModes {
             const religions = new Map(Object.values(this.data.towns).map((town) => [town.religion.id, town.religion]));
             entries = [...religions.values()].map((religion) => ({
                 label: religion.id === NONE ? "No religion" : religion.name,
-                color: religionColor(religion.id),
+                color: religionColor(religion),
             }));
             entries.sort((a, b) => a.label.localeCompare(b.label));
         }
