@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.minecraft.core.BlockPos;
@@ -32,15 +34,31 @@ import xyz.jpenilla.squaremap.common.config.ConfigManager;
 import xyz.jpenilla.squaremap.common.config.WorldConfig;
 import xyz.jpenilla.squaremap.common.httpd.JsonCache;
 import xyz.jpenilla.squaremap.common.util.Util;
+import xyz.jpenilla.squaremap.common.util.EntityScheduler;
 
 @DefaultQualifier(NonNull.class)
 public final class UpdatePlayers implements Runnable {
+    private static final String NAME = "name";
+    private static final String UUID_KEY = "uuid";
+    private static final String UUID_SEPARATOR = "-";
+    private static final String EMPTY = "";
+    private static final String DISPLAY_NAME = "display_name";
+    private static final String WORLD = "world";
+    private static final String X = "x";
+    private static final String Y = "y";
+    private static final String Z = "z";
+    private static final String YAW = "yaw";
+    private static final String ARMOR = "armor";
+    private static final String HEALTH = "health";
+    private static final String PLAYERS = "players";
+    private static final String MAX = "max";
     private static final String ONLINE = "online";
     private static final String VISIBLE = "visible";
     private static final String HIDDEN = "hidden";
     private static final int ONLINE_INDEX = 0;
     private static final int HIDDEN_INDEX = 1;
     private static final int COUNT_FIELDS = 2;
+    private static final long MAX_SNAPSHOT_AGE = 2;
     private static final String JSON_PATH = "/tiles/players.json";
 
     private final Provider<ComponentFlattener> flattener;
@@ -48,6 +66,9 @@ public final class UpdatePlayers implements Runnable {
     private final ServerAccess serverAccess;
     private final ConfigManager configManager;
     private final JsonCache jsonCache;
+    private final EntityScheduler entityScheduler;
+    private final Map<UUID, PlayerSnapshot> snapshots = new ConcurrentHashMap<>();
+    private long updateSequence;
     private @Nullable Map<String, Object> lastData = null;
 
     @Inject
@@ -56,13 +77,15 @@ public final class UpdatePlayers implements Runnable {
         final AbstractPlayerManager playerManager,
         final ServerAccess serverAccess,
         final ConfigManager configManager,
-        final JsonCache jsonCache
+        final JsonCache jsonCache,
+        final EntityScheduler entityScheduler
     ) {
         this.flattener = flattener;
         this.playerManager = playerManager;
         this.serverAccess = serverAccess;
         this.configManager = configManager;
         this.jsonCache = jsonCache;
+        this.entityScheduler = entityScheduler;
     }
 
     @Override
@@ -83,74 +106,96 @@ public final class UpdatePlayers implements Runnable {
         final List<Object> players = new ArrayList<>();
         final int[] counts = new int[COUNT_FIELDS];
 
-        final HtmlComponentSerializer htmlComponentSerializer = HtmlComponentSerializer.withFlattener(this.flattener.get());
-
-        this.serverAccess.levels().forEach(world -> {
-            final WorldConfig worldConfig = this.configManager.worldConfig(world);
-
-            world.players().forEach(player -> {
-                // left out entirely (vanished staff, spectators, NPCs): not even their name is published
-                if (worldConfig.PLAYER_TRACKER_HIDE_SPECTATORS && player.gameMode.getGameModeForPlayer() == GameType.SPECTATOR) {
-                    return;
-                }
-                if (this.playerManager.otherwiseHidden(player)) {
-                    return;
-                }
-                counts[ONLINE_INDEX]++;
-                // Meridian: hidden from the map (invisible, under a roof, /map hide) but still listed, with no position
-                final boolean hidden = !worldConfig.MAP_ENABLED
-                    || !worldConfig.PLAYER_TRACKER_ENABLED
-                    || (worldConfig.PLAYER_TRACKER_HIDE_INVISIBLE && player.isInvisible())
-                    || (worldConfig.PLAYER_TRACKER_HIDE_MAP_INVISIBILITY_EQUIPMENT && hasMapInvisibilityItemEquipped(player))
-                    || (worldConfig.PLAYER_TRACKER_HIDE_UNDER_ROOF && underRoof(world, player))
-                    || this.playerManager.hidden(player);
-                if (hidden) {
-                    counts[HIDDEN_INDEX]++;
-                    if (worldConfig.PLAYER_TRACKER_LIST_HIDDEN) {
-                        final Map<String, Object> entry = new HashMap<>();
-                        entry.put("name", player.getGameProfile().name());
-                        if (worldConfig.PLAYER_TRACKER_USE_DISPLAY_NAME) {
-                            entry.put("display_name", htmlComponentSerializer.serialize(this.playerManager.displayName(player)));
-                        }
-                        entry.put("uuid", player.getUUID().toString().replace("-", ""));
-                        entry.put("hidden", true);
-                        players.add(entry);
-                    }
-                    return;
-                }
-                final Map<String, Object> playerEntry = new HashMap<>();
-                final Vec3 playerLoc = player.position();
-                playerEntry.put("name", player.getGameProfile().name());
-                if (worldConfig.PLAYER_TRACKER_USE_DISPLAY_NAME) {
-                    playerEntry.put("display_name", htmlComponentSerializer.serialize(this.playerManager.displayName(player)));
-                }
-                playerEntry.put("uuid", player.getUUID().toString().replace("-", ""));
-                playerEntry.put("world", Util.levelWebName(world));
-                if (worldConfig.PLAYER_TRACKER_ENABLED) {
-                    playerEntry.put("x", Mth.floor(playerLoc.x()));
-                    playerEntry.put("y", Mth.floor(playerLoc.y()));
-                    playerEntry.put("z", Mth.floor(playerLoc.z()));
-                    playerEntry.put("yaw", Math.round(player.getYHeadRot()));
-                    if (worldConfig.PLAYER_TRACKER_NAMEPLATE_SHOW_ARMOR) {
-                        playerEntry.put("armor", armorPoints(player));
-                    }
-                    if (worldConfig.PLAYER_TRACKER_NAMEPLATE_SHOW_HEALTH) {
-                        playerEntry.put("health", (int) player.getHealth());
-                    }
-                }
-                players.add(playerEntry);
-            });
-        });
+        final long sequence = ++this.updateSequence;
+        final List<ServerPlayer> onlinePlayers = new ArrayList<>();
+        this.serverAccess.levels().forEach(world -> onlinePlayers.addAll(world.players()));
+        final List<UUID> onlineIds = onlinePlayers.stream().map(ServerPlayer::getUUID).toList();
+        this.snapshots.keySet().retainAll(onlineIds);
+        for (final ServerPlayer player : onlinePlayers) {
+            this.entityScheduler.scheduleFor(player, () -> this.capturePlayer(player, sequence));
+            final @Nullable PlayerSnapshot snapshot = this.snapshots.get(player.getUUID());
+            if (snapshot == null || sequence - snapshot.sequence() > MAX_SNAPSHOT_AGE) {
+                continue;
+            }
+            counts[ONLINE_INDEX]++;
+            if (snapshot.hidden()) {
+                counts[HIDDEN_INDEX]++;
+            }
+            if (!snapshot.entry().isEmpty()) {
+                players.add(snapshot.entry());
+            }
+        }
 
         final Map<String, Object> map = new HashMap<>();
 
         map.put(ONLINE, counts[ONLINE_INDEX]);
         map.put(VISIBLE, counts[ONLINE_INDEX] - counts[HIDDEN_INDEX]);
         map.put(HIDDEN, counts[HIDDEN_INDEX]);
-        map.put("players", players);
-        map.put("max", this.serverAccess.maxPlayers());
+        map.put(PLAYERS, players);
+        map.put(MAX, this.serverAccess.maxPlayers());
 
         return map;
+    }
+
+    private void capturePlayer(final ServerPlayer player, final long sequence) {
+        final WorldConfig config = this.configManager.worldConfig(player.level());
+        if ((config.PLAYER_TRACKER_HIDE_SPECTATORS && player.gameMode.getGameModeForPlayer() == GameType.SPECTATOR)
+            || this.playerManager.otherwiseHidden(player)) {
+            this.snapshots.remove(player.getUUID());
+            return;
+        }
+        final boolean hidden = this.isHidden(player, config);
+        final Map<String, Object> entry = hidden && !config.PLAYER_TRACKER_LIST_HIDDEN
+            ? Map.of() : this.playerEntry(player, config, hidden);
+        this.snapshots.put(player.getUUID(), new PlayerSnapshot(sequence, hidden, Map.copyOf(entry)));
+    }
+
+    private boolean isHidden(final ServerPlayer player, final WorldConfig config) {
+        return !config.MAP_ENABLED
+            || !config.PLAYER_TRACKER_ENABLED
+            || (config.PLAYER_TRACKER_HIDE_INVISIBLE && player.isInvisible())
+            || (config.PLAYER_TRACKER_HIDE_MAP_INVISIBILITY_EQUIPMENT && hasMapInvisibilityItemEquipped(player))
+            || (config.PLAYER_TRACKER_HIDE_UNDER_ROOF && underRoof(player.level(), player))
+            || this.playerManager.hidden(player);
+    }
+
+    private Map<String, Object> playerEntry(final ServerPlayer player, final WorldConfig config, final boolean hidden) {
+        final Map<String, Object> entry = this.playerIdentity(player, config);
+        if (hidden) {
+            entry.put(HIDDEN, true);
+            return entry;
+        }
+        this.addPosition(entry, player);
+        if (config.PLAYER_TRACKER_NAMEPLATE_SHOW_ARMOR) {
+            entry.put(ARMOR, armorPoints(player));
+        }
+        if (config.PLAYER_TRACKER_NAMEPLATE_SHOW_HEALTH) {
+            entry.put(HEALTH, (int) player.getHealth());
+        }
+        return entry;
+    }
+
+    private Map<String, Object> playerIdentity(final ServerPlayer player, final WorldConfig config) {
+        final Map<String, Object> entry = new HashMap<>();
+        entry.put(NAME, player.getGameProfile().name());
+        entry.put(UUID_KEY, player.getUUID().toString().replace(UUID_SEPARATOR, EMPTY));
+        if (config.PLAYER_TRACKER_USE_DISPLAY_NAME) {
+            final HtmlComponentSerializer serializer = HtmlComponentSerializer.withFlattener(this.flattener.get());
+            entry.put(DISPLAY_NAME, serializer.serialize(this.playerManager.displayName(player)));
+        }
+        return entry;
+    }
+
+    private void addPosition(final Map<String, Object> entry, final ServerPlayer player) {
+        final Vec3 position = player.position();
+        entry.put(WORLD, Util.levelWebName(player.level()));
+        entry.put(X, Mth.floor(position.x()));
+        entry.put(Y, Mth.floor(position.y()));
+        entry.put(Z, Mth.floor(position.z()));
+        entry.put(YAW, Math.round(player.getYHeadRot()));
+    }
+
+    private record PlayerSnapshot(long sequence, boolean hidden, Map<String, Object> entry) {
     }
 
     /**
