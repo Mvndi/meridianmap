@@ -190,9 +190,7 @@ class MapModes {
             this.context.textContent = this.selected
                 ? `Relations with ${this.nations.get(this.selected)?.name}. Click territory to change nation.`
                 : "Choose a nation or click its territory to see allies and enemies.";
-        else
-            this.context.textContent =
-                "Town claims coloured by nation. Independent towns share the default territory colour.";
+        else this.context.textContent = "Town claims coloured by nation.";
         this.renderLegend();
     }
 
