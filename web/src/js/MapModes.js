@@ -201,11 +201,17 @@ class MapModes {
         if (this.mode === "diplomacy" && this.selected) entries = Object.values(RELATIONS);
         if (this.mode === "religion" && this.data.religion_available) {
             const religions = new Map(Object.values(this.data.towns).map((town) => [town.religion.id, town.religion]));
-            entries = [...religions.values()].map((religion) => ({
-                label: religion.id === NONE ? "No religion" : religion.name,
-                color: religionColor(religion),
-            }));
-            entries.sort((a, b) => a.label.localeCompare(b.label));
+            if (!religions.has(NONE)) religions.set(NONE, { id: NONE });
+            entries = [...religions.values()]
+                .sort((a, b) => {
+                    if (a.id === NONE) return -1;
+                    if (b.id === NONE) return 1;
+                    return a.name.localeCompare(b.name);
+                })
+                .map((religion) => ({
+                    label: religion.id === NONE ? "No religion" : religion.name,
+                    color: religionColor(religion),
+                }));
         }
         this.legend.replaceChildren(...entries.map((entry) => this.createLegendItem(entry)));
     }
