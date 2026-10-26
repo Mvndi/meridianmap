@@ -5,10 +5,10 @@ const MARKETS_URL = "tiles/markets.json";
 const REFRESH_MS = 15_000;
 const MAX_LISTINGS = 150;
 const MARKET_ICON = L.icon({
-    iconUrl: "images/icon/market.svg",
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    tooltipAnchor: [0, -14],
+    iconUrl: "images/icon/market.png",
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    tooltipAnchor: [0, -12],
 });
 const nice = (value) =>
     String(value || "")
