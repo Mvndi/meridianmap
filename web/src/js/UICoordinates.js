@@ -2,15 +2,18 @@ import { S } from "./Squaremap.js";
 import { store } from "./Sidebar.js";
 import L from "leaflet";
 
-/** Meridian Earth projection: 1:300 equirectangular, 371.2 blocks per degree, block z 0 at 75 N and x 0 at 180 W. */
-const BLOCKS_PER_DEGREE = 133632 / 360;
-const LAT_TOP = 75;
+// shortcut: Duke of Lorraine's fitted Earth coordinates, replace when the original projection is available.
+const LONGITUDE_SCALE = 1.797e-3;
+const LONGITUDE_OFFSET = -179.04;
+const LATITUDE_QUADRATIC = -5.85e-9;
+const LATITUDE_LINEAR = -1.149e-3;
+const LATITUDE_OFFSET = 82.94;
 
 const fmt = (n) => Math.floor(n).toLocaleString("en-US").replace("-", "−");
 
 function latLon(x, z) {
-    const lat = LAT_TOP - z / BLOCKS_PER_DEGREE;
-    const lon = -180 + x / BLOCKS_PER_DEGREE;
+    const lat = LATITUDE_QUADRATIC * z ** 2 + LATITUDE_LINEAR * z + LATITUDE_OFFSET;
+    const lon = LONGITUDE_SCALE * x + LONGITUDE_OFFSET;
     if (lat > 90 || lat < -90 || lon < -180 || lon > 180) return "";
     const ns = `${Math.abs(lat).toFixed(2)}° ${lat >= 0 ? "N" : "S"}`;
     const ew = `${Math.abs(lon).toFixed(2)}° ${lon >= 0 ? "E" : "W"}`;
