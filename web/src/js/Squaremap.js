@@ -85,6 +85,7 @@ class SquaremapMap {
             "tiles/settings.json",
             /** @param {Settings} json */
             (json) => {
+                this.rendererReady = this.loadPolygonRenderer();
                 this.layerControl.init();
 
                 this.staticMode = json.static || false;
@@ -114,6 +115,18 @@ class SquaremapMap {
                 });
             },
         );
+    }
+    async loadPolygonRenderer() {
+        if (!window.WebGLRenderingContext) return;
+        try {
+            const { createPolygonRenderer } = await import("./WebGLRenderer.js");
+            this.polygonRenderer = createPolygonRenderer();
+            this.polygonRenderer?.on("fallback", (event) => {
+                this.polygonRenderer = event.renderer;
+            });
+        } catch (error) {
+            console.warn("Unable to load WebGL map renderer; using Canvas", error);
+        }
     }
     /** Meridian: player nameplates only when zoomed right in (1 pixel = 1 block or closer); dots and a hover name further out. */
     updateDetail() {

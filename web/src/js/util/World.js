@@ -55,18 +55,28 @@ class World {
             this.staticNeedsMarkerTick = false;
         }
     }
-    tickMarkers() {
-        S.getJSON(
-            `tiles/${this.name}/markers.json`,
-            (json) => {
-                if (this === S.worldList.curWorld) {
-                    this.markers(json);
-                }
-            },
-            true,
-        );
+    async tickMarkers() {
+        if (this.loadingMarkers) return;
+        this.loadingMarkers = true;
+        try {
+            const headers = this.markerEtag ? { "If-None-Match": this.markerEtag } : {};
+            const response = await fetch(`tiles/${this.name}/markers.json`, { headers, cache: "no-store" });
+            if (response.status === 304) return;
+            if (!response.ok) throw new Error(`Marker request failed: ${response.status}`);
+            const json = await response.json();
+            if (!Array.isArray(json)) throw new Error("Invalid marker data");
+            await S.rendererReady;
+            if (this !== S.worldList.curWorld) return;
+            this.markers(json);
+            this.markerEtag = response.headers.get("ETag");
+        } catch (error) {
+            console.warn("Unable to refresh map markers", error);
+        } finally {
+            this.loadingMarkers = false;
+        }
     }
     unload() {
+        this.markerEtag = null;
         S.playerList.clearPlayerMarkers();
         const keys = Array.from(this.markerLayers.keys());
         for (let i = 0; i < keys.length; i++) {
@@ -133,11 +143,13 @@ class World {
             return;
         }
         json = json.filter((entry) => entry.id !== SPAWN_LAYER_ID);
+        let changed = false;
         const active = new Set(json.map((entry) => entry.id));
         for (const [id, layer] of this.markerLayers) {
             if (active.has(id)) continue;
             S.layerControl.removeOverlay(layer);
             this.markerLayers.delete(id);
+            changed = true;
         }
         // iterate layers
         for (const entry of json) {
@@ -154,6 +166,7 @@ class World {
                 // to reduce possible client side lag
             }
 
+            changed = true;
             // setup the layer
             layer = new L.LayerGroup();
             layer.order = entry.order;
@@ -197,7 +210,7 @@ class World {
                 }
             }
         }
-        S.mapModes?.apply();
+        if (changed) S.mapModes?.apply();
     }
 }
 

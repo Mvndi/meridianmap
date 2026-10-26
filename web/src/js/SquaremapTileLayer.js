@@ -1,44 +1,87 @@
 import L from "leaflet";
 
 export const SquaremapTileLayer = L.TileLayer.extend({
-    // @method createTile(coords: Object, done?: Function): HTMLElement
-    // Called only internally, overrides GridLayer's [`createTile()`](#gridlayer-createtile)
-    // to return an `<img>` HTML element with the appropriate image URL given `coords`. The `done`
-    // callback is called when the tile has been loaded.
+    initialize: function (url, options) {
+        L.TileLayer.prototype.initialize.call(this, url, options);
+        this.requests = new WeakMap();
+        this.on("tileunload tileabort", (event) => this.requests.get(event.tile)?.controller?.abort());
+    },
+
     createTile: function (coords, done) {
-        var tile = document.createElement("img");
-
-        L.DomEvent.on(tile, "load", () => {
-            //Once image has loaded revoke the object URL as we don't need it anymore
-            URL.revokeObjectURL(tile.src);
-            this._tileOnLoad(done, tile);
-        });
-        L.DomEvent.on(tile, "error", L.Util.bind(this._tileOnError, this, done, tile));
-
+        const tile = document.createElement("img");
+        tile.alt = "";
+        tile.setAttribute("role", "presentation");
         if (this.options.crossOrigin || this.options.crossOrigin === "") {
             tile.crossOrigin = this.options.crossOrigin === true ? "" : this.options.crossOrigin;
         }
-
-        tile.alt = "";
-        tile.setAttribute("role", "presentation");
-
-        //Retrieve image via a fetch instead of just setting the src
-        //This works around the fact that browsers usually don't make a request for an image that was previously loaded,
-        //without resorting to changing the URL (which would break caching).
-        fetch(this.getTileUrl(coords))
-            .then((res) => {
-                //Call leaflet's error handler if request fails for some reason
-                if (!res.ok) {
-                    this._tileOnError(done, tile, null);
-                    return;
-                }
-
-                //Get image data and convert into object URL so it can be used as a src
-                //Leaflet's onload listener will take it from here
-                res.blob().then((blob) => (tile.src = URL.createObjectURL(blob)));
-            })
-            .catch(() => this._tileOnError(done, tile, null));
-
+        this.requests.set(tile, { coords, controller: null, etag: null, ready: false });
+        this.loadTile(tile, done);
         return tile;
+    },
+
+    refresh: function () {
+        for (const entry of Object.values(this._tiles ?? {})) {
+            if (entry.current) this.loadTile(entry.el);
+        }
+    },
+
+    loadTile: async function (tile, done) {
+        const request = this.requests.get(tile);
+        if (request.controller) return;
+        const controller = new AbortController();
+        request.controller = controller;
+        let failure;
+        try {
+            await this.updateTile(tile, request);
+        } catch (error) {
+            failure = error;
+        } finally {
+            request.controller = null;
+        }
+        if (!controller.signal.aborted) this.completeTile(tile, done, failure);
+    },
+
+    updateTile: async function (tile, request) {
+        const response = await fetch(this.getTileUrl(request.coords), {
+            cache: "no-cache",
+            signal: request.controller.signal,
+        });
+        if (!response.ok) throw new Error(`Tile request failed: ${response.status}`);
+        const etag = response.headers.get("ETag");
+        if (etag && etag === request.etag) {
+            await response.body?.cancel();
+            return;
+        }
+        await this.replaceTile(tile, await response.blob());
+        request.etag = etag;
+    },
+
+    replaceTile: async function (tile, blob) {
+        const objectUrl = URL.createObjectURL(blob);
+        try {
+            const replacement = new Image();
+            replacement.src = objectUrl;
+            await replacement.decode();
+            this.requests.get(tile).controller.signal.throwIfAborted();
+            tile.src = objectUrl;
+            await tile.decode();
+            L.DomUtil.addClass(tile, "leaflet-tile-loaded");
+        } finally {
+            URL.revokeObjectURL(objectUrl);
+        }
+    },
+
+    completeTile: function (tile, done, error) {
+        if (error) {
+            if (done) {
+                tile.src = this.options.errorTileUrl || L.Util.emptyImageUrl;
+                done(error, tile);
+            }
+            return;
+        }
+        const request = this.requests.get(tile);
+        if (!done && !request.ready) this._tileReady(request.coords, null, tile);
+        request.ready = true;
+        done?.(null, tile);
     },
 });

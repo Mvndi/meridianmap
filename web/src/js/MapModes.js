@@ -100,6 +100,7 @@ class MapModes {
         const marker = wrapper.marker;
         marker._townId = id;
         marker._politicalStyle = { ...marker.options };
+        delete marker._politicalStyle.renderer;
         marker.on("click", () => {
             const town = this.data.towns[id];
             if (this.mode === "diplomacy" && town?.nation) this.selectNation(town.nation);
@@ -125,11 +126,18 @@ class MapModes {
             return;
         }
         const color = this.territoryColor(town);
+        const fillOpacity = Math.max(original.fillOpacity ?? 0.2, 0.3);
+        if (
+            marker.options.color === color &&
+            marker.options.fillColor === color &&
+            marker.options.fillOpacity === fillOpacity
+        )
+            return;
         marker.setStyle({
             ...original,
             color,
             fillColor: color,
-            fillOpacity: Math.max(original.fillOpacity ?? 0.2, 0.3),
+            fillOpacity,
         });
     }
 

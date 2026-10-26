@@ -1,5 +1,6 @@
 import { S } from "../Squaremap.js";
 import L from "leaflet";
+import { ViewportMarker } from "../ViewportMarker.js";
 
 class Marker {
     /** @type {L.Marker} */
@@ -46,6 +47,14 @@ class Marker {
         }
         for (const key in this.opts) {
             this.marker.options[key] = this.opts[key];
+        }
+        if (
+            S.polygonRenderer &&
+            this.marker instanceof L.Polygon &&
+            !this.marker.options.dashArray &&
+            this.marker.options.fillRule === "evenodd"
+        ) {
+            this.marker.options.renderer = S.polygonRenderer;
         }
     }
     addTo(layer) {
@@ -157,7 +166,7 @@ class Icon extends Marker {
         const size = this.opts.pop("size");
         const anchor = this.opts.pop("anchor");
         const tooltipAnchor = this.opts.pop("tooltip_anchor", L.point(0, -size.z / 2));
-        this.marker = L.marker(S.toLatLng(point.x, point.z), {
+        this.marker = new ViewportMarker(S.toLatLng(point.x, point.z), {
             icon: L.icon({
                 iconUrl: `images/icon/registered/${opts.pop("icon")}.png`,
                 iconSize: [size.x, size.z],
