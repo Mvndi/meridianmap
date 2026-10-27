@@ -1,18 +1,12 @@
 import { S } from "./Squaremap.js";
 import L from "leaflet";
 
-// shortcut: Duke of Lorraine's fitted Earth coordinates, replace when the original projection is available.
-const LONGITUDE_SCALE = 1.797e-3;
-const LONGITUDE_OFFSET = -179.04;
-const LATITUDE_QUADRATIC = -5.85e-9;
-const LATITUDE_LINEAR = -1.149e-3;
-const LATITUDE_OFFSET = 82.94;
+import { earthCoordinates } from "./util/Geography.js";
 
 const fmt = (n) => Math.floor(n).toLocaleString("en-US").replace("-", "−");
 
 function latLon(x, z) {
-    const lat = LATITUDE_QUADRATIC * z ** 2 + LATITUDE_LINEAR * z + LATITUDE_OFFSET;
-    const lon = LONGITUDE_SCALE * x + LONGITUDE_OFFSET;
+    const { latitude: lat, longitude: lon } = earthCoordinates(x, z);
     if (lat > 90 || lat < -90 || lon < -180 || lon > 180) return "";
     const ns = `${Math.abs(lat).toFixed(2)}° ${lat >= 0 ? "N" : "S"}`;
     const ew = `${Math.abs(lon).toFixed(2)}° ${lon >= 0 ? "E" : "W"}`;
@@ -52,7 +46,8 @@ class UICoordinates {
         S.map.addControl(this.coords);
         S.map.on("mousemove", (event) => {
             if (S.worldList.curWorld != null) {
-                this.coords.update(S.toPoint(event.latlng));
+                const point = S.globe?.active ? S.globe.toPoint(event.containerPoint) : S.toPoint(event.latlng);
+                this.coords.update(point);
             }
         });
         S.map.on("mouseout", () => this.coords.update(null));
@@ -63,6 +58,10 @@ class UICoordinates {
 
         // Meridian: right-click (long-press on phones) a spot to copy its coordinates
         S.map.on("contextmenu", (event) => {
+            if (S.globe?.active) {
+                S.globe.openMap(event);
+                return;
+            }
             if (S.worldList.curWorld != null) {
                 this.openCopyPopup(event.latlng);
             }
@@ -109,7 +108,10 @@ class UICoordinates {
             }
         });
         box.appendChild(button);
-        L.popup({ className: "m-popup", offset: [0, -2], autoPan: true }).setLatLng(latlng).setContent(box).openOn(S.map);
+        L.popup({ className: "m-popup", offset: [0, -2], autoPan: true })
+            .setLatLng(latlng)
+            .setContent(box)
+            .openOn(S.map);
     }
 }
 

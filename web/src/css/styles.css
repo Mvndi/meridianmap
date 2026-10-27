@@ -59,6 +59,21 @@ input {
     background: #000;
     font-family: var(--sans);
 }
+.m-globe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    pointer-events: none;
+}
+.m-globe-active > .m-globe {
+    display: block;
+}
+.m-globe-active > .leaflet-map-pane {
+    visibility: hidden;
+    pointer-events: none;
+}
 img.leaflet-tile {
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;

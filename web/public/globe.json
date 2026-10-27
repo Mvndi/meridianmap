@@ -1,0 +1,13 @@
+{
+    "enabled": true,
+    "world": "minecraft_overworld",
+    "bounds": {
+        "minX": 84992,
+        "maxX": 135168,
+        "minZ": 8192,
+        "maxZ": 51200
+    },
+    "startZoom": 1,
+    "globeZoom": -1,
+    "minZoom": -2
+}

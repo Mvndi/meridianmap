@@ -116,6 +116,9 @@ class World {
                 // setup tile layers
                 S.layerControl.setupTileLayers(this);
                 S.updateDetail();
+                S.globeReady?.then((globe) => {
+                    if (this === S.worldList.curWorld) globe?.setWorld(this);
+                });
 
                 // force clear player markers
                 S.playerList.clearPlayerMarkers();

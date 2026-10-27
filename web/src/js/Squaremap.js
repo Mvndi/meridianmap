@@ -86,6 +86,7 @@ class SquaremapMap {
             /** @param {Settings} json */
             (json) => {
                 this.rendererReady = this.loadPolygonRenderer();
+                this.globeReady = import("./GlobeView.js").then(({ createGlobe }) => createGlobe(this));
                 this.layerControl.init();
 
                 this.staticMode = json.static || false;
@@ -135,6 +136,7 @@ class SquaremapMap {
         this.map.getContainer().classList.toggle("m-far", this.map.getZoom() < world.zoom.max);
     }
     centerOn(x, z, zoom) {
+        this.globeRequest = zoom < 0 && !this.globe?.ready ? { x, z, zoom } : undefined;
         this.map.setView(this.toLatLng(x, z), zoom);
         return this.map;
     }
@@ -246,6 +248,7 @@ Array.prototype.remove = function () {
 
 if (import.meta.hot) {
     import.meta.hot.dispose(() => {
+        S.globeReady?.then((globe) => globe?.destroy());
         S.sidebar.remove();
         S.map.remove();
     });
