@@ -8,6 +8,7 @@ import { Markets } from "./Markets.js";
 import { Navbar } from "./Navbar.js";
 import L from "leaflet";
 import "./addons/Ellipse.js";
+import "./addons/HoverTooltip.js";
 import "./addons/RotateMarker.js";
 import "leaflet/dist/leaflet.css";
 import "../css/styles.css";
