@@ -102,6 +102,7 @@ class LayerControl {
         this.playersLayer.order = world.player_tracker.priority;
         this.playersLayer.setZIndex(world.player_tracker.z_index);
 
+        S.mapModes?.plots.attach();
         S.markets?.attach();
         S.markets?.render();
     }

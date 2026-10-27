@@ -1,4 +1,5 @@
 import { S } from "./Squaremap.js";
+import { ReligiousPlots } from "./ReligiousPlots.js";
 import { store } from "./Sidebar.js";
 
 const MODES = ["political", "religion", "diplomacy"];
@@ -33,6 +34,7 @@ class MapModes {
         this.selected = store.get("nation", "");
         this.data = { nations: [], towns: {}, religion_available: false };
         this.nations = new Map();
+        this.plots = new ReligiousPlots();
         this.applying = false;
         this.loaded = false;
         this.loading = false;
@@ -90,6 +92,7 @@ class MapModes {
     }
 
     allowsOverlay(layer) {
+        if (layer.id === "religious_plots_layer") return this.mode === "religion";
         return layer.id !== "nation_protection" || this.mode === "political";
     }
 
@@ -152,6 +155,7 @@ class MapModes {
     }
 
     apply() {
+        this.plots.update(this.data.religious_plots ?? []);
         this.applying = true;
         try {
             S.layerControl.controls._layers
@@ -169,7 +173,7 @@ class MapModes {
             layer.remove();
             return;
         }
-        if (layer.id !== "nation_protection" && !this.isTerritory(layer)) return;
+        if (!["nation_protection", "religious_plots_layer"].includes(layer.id) && !this.isTerritory(layer)) return;
         const show = this.isTerritory(layer) || !S.layerControl.shouldHide(layer, layer._defaultHidden);
         if (show) layer.addTo(S.map);
         else layer.remove();

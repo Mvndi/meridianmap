@@ -995,3 +995,16 @@ body.panel-closed #msidebar-toggle svg {
 .market-card .market-item-details {
     margin: 8px 0;
 }
+
+.religious-plot-icon {
+    color: #fff1ca;
+    filter: drop-shadow(0 1px 2px #000);
+}
+
+.religious-plot-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+    stroke: #352b24;
+    stroke-width: 0.7px;
+}
