@@ -8,6 +8,7 @@ const TILE_SIZE = 512;
 const ATLAS_ZOOM = 1;
 const MAX_RESOLUTION = 2;
 const ZOOM_DURATION = 250;
+const EFFECT_FRAME_INTERVAL = 1000 / 30;
 
 export class GlobeView {
     constructor(app, settings) {
@@ -39,6 +40,10 @@ export class GlobeView {
         this.refresh = this.refresh.bind(this);
         this.animateZoom = this.animateZoom.bind(this);
         this.openMap = this.openMap.bind(this);
+        this.effectStart = performance.now();
+        this.motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+        this.motionPreference.addEventListener("change", this.refresh);
+        document.addEventListener("visibilitychange", this.refresh);
         this.map.on("move zoom resize layeradd layerremove", this.refresh);
         this.map.on("zoomanim", this.animateZoom);
         this.map.on("dblclick", this.openMap);
@@ -333,8 +338,14 @@ export class GlobeView {
 
     refresh() {
         if (this.destroyed || this.frame) return;
-        this.frame = requestAnimationFrame(() => {
+        this.frame = requestAnimationFrame((timestamp) => {
             this.frame = undefined;
+            const effectFrame = Math.floor(timestamp / EFFECT_FRAME_INTERVAL);
+            if (this.active && !this.animation && this.effectFrame === effectFrame) {
+                this.refresh();
+                return;
+            }
+            this.effectFrame = effectFrame;
             this.render();
         });
     }
@@ -351,7 +362,7 @@ export class GlobeView {
     }
 
     render() {
-        if (!this.ready) return;
+        if (!this.ready || document.visibilityState !== "visible") return;
         this.updateView();
         const active = this.visualZoom < this.settings.startZoom;
         this.setActive(active);
@@ -377,6 +388,7 @@ export class GlobeView {
         );
         this.uniform("projection", view.curve, view.radius, view.latitude, view.pixelsPerBlock);
         this.uniform("verticalRatio", view.verticalRatio);
+        this.uniform("elapsedTime", this.motionPreference.matches ? 0 : (performance.now() - this.effectStart) / 1000);
         this.uniform(
             "geography",
             EARTH_PROJECTION.latitudeQuadratic * RADIANS,
@@ -385,6 +397,7 @@ export class GlobeView {
             0,
         );
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        if (!this.motionPreference.matches) this.refresh();
     }
 
     updateView() {
@@ -416,6 +429,8 @@ export class GlobeView {
         this.destroyed = true;
         this.ready = false;
         cancelAnimationFrame(this.frame);
+        this.motionPreference.removeEventListener("change", this.refresh);
+        document.removeEventListener("visibilitychange", this.refresh);
         clearInterval(this.refreshTimer);
         clearInterval(this.overlayTimer);
         this.map.off("move zoom resize layeradd layerremove", this.refresh);
