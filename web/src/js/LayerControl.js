@@ -113,9 +113,12 @@ class LayerControl {
     createTileLayer(world) {
         return new SquaremapTileLayer(`tiles/${world.name}/{z}/{x}_{y}.png`, {
             tileSize: 512,
+            updateWhenIdle: true,
+            updateWhenZooming: false,
             minNativeZoom: 0,
             maxNativeZoom: world.zoom.max,
             errorTileUrl: "images/clear.png",
+            fetchPriority: "high",
         }).addTo(S.map);
     }
     /**
@@ -146,6 +149,9 @@ class LayerControl {
             maxNativeZoom: world.zoom.max,
             errorTileUrl: "images/clear.png",
             pane: "relief",
+            updateWhenIdle: true,
+            updateWhenZooming: false,
+            fetchPriority: "low",
         });
         this.reliefLayer.id = "relief_layer";
         this.reliefLayer.order = -100;

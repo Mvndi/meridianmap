@@ -73,12 +73,24 @@ public final class Config extends AbstractConfig {
         COMPRESSION_RATIO = (float) (1.0D - COMPRESSION_RATIO_CONFIG);
     }
 
+    private static final String SHUTDOWN_TIMEOUT_SECONDS = "settings.internal-webserver.shutdown-timeout-seconds";
+    private static final int MAX_SHUTDOWN_TIMEOUT_SECONDS = 300;
+    public static int HTTPD_SHUTDOWN_TIMEOUT_SECONDS = 10;
+    private static final String TILE_CACHE_SECONDS = "settings.internal-webserver.tile-cache-seconds";
+    private static final int MAX_TILE_CACHE_SECONDS = 3600;
+    public static int HTTPD_TILE_CACHE_SECONDS = 30;
     public static boolean HTTPD_ENABLED = true;
     public static String HTTPD_BIND = "0.0.0.0";
     public static int HTTPD_PORT = 8080;
     public static boolean FLUSH_JSON_IMMEDIATELY = false;
 
     private static void internalWebServerSettings() {
+        HTTPD_SHUTDOWN_TIMEOUT_SECONDS = Math.clamp(
+            config.getInt(SHUTDOWN_TIMEOUT_SECONDS, HTTPD_SHUTDOWN_TIMEOUT_SECONDS), 1, MAX_SHUTDOWN_TIMEOUT_SECONDS
+        );
+        HTTPD_TILE_CACHE_SECONDS = Math.clamp(
+            config.getInt(TILE_CACHE_SECONDS, HTTPD_TILE_CACHE_SECONDS), 0, MAX_TILE_CACHE_SECONDS
+        );
         HTTPD_ENABLED = config.getBoolean("settings.internal-webserver.enabled", HTTPD_ENABLED);
         HTTPD_BIND = config.getString("settings.internal-webserver.bind", HTTPD_BIND);
         HTTPD_PORT = config.getInt("settings.internal-webserver.port", HTTPD_PORT);

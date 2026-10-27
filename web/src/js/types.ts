@@ -75,6 +75,7 @@ export interface WorldSettings_Relief {
 export interface WorldSettings {
     relief?: WorldSettings_Relief;
     spawn: WorldSettings_Spawn;
+    center?: WorldSettings_Spawn;
     player_tracker: WorldSettings_PlayerTracker;
     zoom: WorldSettings_Zoom;
     marker_update_interval: number;

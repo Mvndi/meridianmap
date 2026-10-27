@@ -26,6 +26,10 @@ import xyz.jpenilla.squaremap.common.data.DirectoryProvider;
 import xyz.jpenilla.squaremap.common.util.Util;
 
 public final class IntegratedServer {
+    private static final String TILES_PATH = "/tiles";
+    private static final String PNG_SUFFIX = ".png";
+    private static final String TILE_CACHE_POLICY = "public, max-age=%d, must-revalidate";
+    private static final String REVALIDATE_CACHE_POLICY = "max-age=0, must-revalidate, no-cache";
     private static final boolean DEV_FRONTEND = Boolean.getBoolean("squaremap.devFrontend");
     private static final String FRONTEND_PATH = System.getProperty("squaremap.frontendPath");
     private static ViteRunner VITE_RUNNER;
@@ -56,6 +60,10 @@ public final class IntegratedServer {
     private static Undertow buildUndertow(final ResourceHandler resourceHandler) {
         return Undertow.builder()
             .setServerOption(UndertowOptions.ENABLE_HTTP2, true)
+            .setServerOption(
+                UndertowOptions.SHUTDOWN_TIMEOUT,
+                (int) TimeUnit.SECONDS.toMillis(Config.HTTPD_SHUTDOWN_TIMEOUT_SECONDS)
+            )
             .addHttpListener(Config.HTTPD_PORT, Config.HTTPD_BIND)
             .setHandler(createHttpHandler(resourceHandler))
             .build();
@@ -98,10 +106,13 @@ public final class IntegratedServer {
                 return;
             }
 
-            if (exchange.getRelativePath().startsWith("/tiles")) {
+            final String path = exchange.getRelativePath();
+            if (path.startsWith(TILES_PATH)) {
                 exchange.getResponseHeaders().put(
                     Headers.CACHE_CONTROL,
-                    "max-age=0, must-revalidate, no-cache"
+                    path.endsWith(PNG_SUFFIX)
+                        ? TILE_CACHE_POLICY.formatted(Config.HTTPD_TILE_CACHE_SECONDS)
+                        : REVALIDATE_CACHE_POLICY
                 );
             }
 

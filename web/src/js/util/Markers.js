@@ -27,6 +27,7 @@ class Marker {
             if (this.popup_sticky) {
                 this.marker.on("click", (event) => {
                     L.popup({
+                        className: "m-popup",
                         direction: this.opts.pop("tooltip_direction", "top"),
                     })
                         .setLatLng(event.latlng)
@@ -35,6 +36,7 @@ class Marker {
                 });
             } else {
                 this.marker.bindPopup(() => this.popup, {
+                    className: "m-popup",
                     direction: this.opts.pop("tooltip_direction", "top"),
                 });
             }

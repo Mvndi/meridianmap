@@ -108,8 +108,8 @@ class SquaremapMap {
                 this.worldList.loadInitialWorld(json, (world) => {
                     this.loop();
                     this.centerOn(
-                        this.getUrlParam("x", world.spawn.x),
-                        this.getUrlParam("z", world.spawn.z),
+                        this.getUrlParam("x", world.center.x),
+                        this.getUrlParam("z", world.center.z),
                         this.getUrlParam("zoom", world.zoom.def),
                     );
                 });
@@ -117,7 +117,7 @@ class SquaremapMap {
         );
     }
     async loadPolygonRenderer() {
-        if (!window.WebGLRenderingContext) return;
+        if (this.getUrlParam("renderer", "canvas") !== "webgl" || !window.WebGLRenderingContext) return;
         try {
             const { createPolygonRenderer } = await import("./WebGLRenderer.js");
             this.polygonRenderer = createPolygonRenderer();

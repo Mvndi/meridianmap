@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.border.WorldBorder;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.framework.qual.DefaultQualifier;
@@ -26,6 +27,9 @@ import xyz.jpenilla.squaremap.common.util.Util;
 
 @DefaultQualifier(NonNull.class)
 public final class UpdateWorldData implements Runnable {
+    private static final String CENTER = "center";
+    private static final String X = "x";
+    private static final String Z = "z";
     private final WorldManager worldManager;
     private final DirectoryProvider directoryProvider;
     private @MonotonicNonNull Map<WorldIdentifier, ChangingData> lastUpdate = null;
@@ -143,6 +147,7 @@ public final class UpdateWorldData implements Runnable {
         final Map<String, Object> settings = new HashMap<>();
         settings.put("relief", relief);
         settings.put("spawn", spawn);
+        settings.put(CENTER, Map.of(X, worldConfig.MAP_CENTER_X, Z, worldConfig.MAP_CENTER_Z));
         settings.put("player_tracker", playerTracker);
         settings.put("zoom", zoom);
         settings.put("marker_update_interval", worldConfig.MARKER_API_UPDATE_INTERVAL_SECONDS);
@@ -164,9 +169,12 @@ public final class UpdateWorldData implements Runnable {
         return "custom";
     }
 
-    private record ChangingData(BlockPos spawn, long lastReset) {
+    private record ChangingData(BlockPos spawn, long lastReset, double borderX, double borderZ) {
         static ChangingData snapshot(final MapWorldInternal world) {
-            return new ChangingData(world.getAnySpawnPos(), world.lastReset());
+            final WorldBorder border = world.serverLevel().getWorldBorder();
+            return new ChangingData(
+                world.getAnySpawnPos(), world.lastReset(), border.getCenterX(), border.getCenterZ()
+            );
         }
     }
 }

@@ -13,6 +13,11 @@ public final class WorldConfig extends AbstractWorldConfig<Config> {
         this.init();
     }
 
+    private static final String CENTER_X = "map.center.x";
+    private static final String CENTER_Z = "map.center.z";
+    public double MAP_CENTER_X;
+    public double MAP_CENTER_Z;
+
     public boolean MAP_ENABLED = true;
     public String MAP_DISPLAY_NAME = "{world}";
     public int MAP_ORDER = 0;
@@ -22,6 +27,8 @@ public final class WorldConfig extends AbstractWorldConfig<Config> {
     public int MAP_MAX_HEIGHT = -1;
 
     private void worldSettings() {
+        this.MAP_CENTER_X = this.getDouble(CENTER_X, this.world.getWorldBorder().getCenterX());
+        this.MAP_CENTER_Z = this.getDouble(CENTER_Z, this.world.getWorldBorder().getCenterZ());
         this.MAP_ENABLED = this.getBoolean("map.enabled", this.MAP_ENABLED);
         this.MAP_DISPLAY_NAME = this.getString("map.display-name", this.MAP_DISPLAY_NAME);
         this.MAP_ORDER = this.getInt("map.order", this.MAP_ORDER);

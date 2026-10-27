@@ -10,6 +10,7 @@ export const SquaremapTileLayer = L.TileLayer.extend({
     createTile: function (coords, done) {
         const tile = document.createElement("img");
         tile.alt = "";
+        tile.decoding = "async";
         tile.setAttribute("role", "presentation");
         if (this.options.crossOrigin || this.options.crossOrigin === "") {
             tile.crossOrigin = this.options.crossOrigin === true ? "" : this.options.crossOrigin;
@@ -42,8 +43,11 @@ export const SquaremapTileLayer = L.TileLayer.extend({
     },
 
     updateTile: async function (tile, request) {
+        const cache = request.attempted ? "no-cache" : "force-cache";
+        request.attempted = true;
         const response = await fetch(this.getTileUrl(request.coords), {
-            cache: "no-cache",
+            cache,
+            priority: this.options.fetchPriority ?? "auto",
             signal: request.controller.signal,
         });
         if (!response.ok) throw new Error(`Tile request failed: ${response.status}`);

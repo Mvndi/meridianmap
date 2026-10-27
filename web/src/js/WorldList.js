@@ -91,7 +91,7 @@ class WorldList {
     selectWorld(world) {
         this.picker.open = false;
         this.search.value = "";
-        this.showWorld(world.name, () => S.centerOn(world.spawn.x, world.spawn.z, world.zoom.def));
+        this.showWorld(world.name, () => S.centerOn(world.center.x, world.center.z, world.zoom.def));
         this.renderWorldOptions();
     }
 

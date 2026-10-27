@@ -97,6 +97,7 @@ class World {
                 this.player_tracker = json.player_tracker;
                 this.zoom = json.zoom;
                 this.spawn = json.spawn;
+                this.center = json.center ?? this.spawn;
                 this.relief = json.relief;
                 this.marker_update_interval = json.marker_update_interval;
                 this.tiles_update_interval = json.tiles_update_interval;
@@ -106,7 +107,7 @@ class World {
                 S.setScale(this.zoom.max);
 
                 // set center and zoom
-                S.centerOn(this.spawn.x, this.spawn.z, this.zoom.def)
+                S.centerOn(this.center.x, this.center.z, this.zoom.def)
                     .setMinZoom(0) // extra zoom out doesn't work :(
                     .setMaxZoom(this.zoom.max + this.zoom.extra);
 
