@@ -36,6 +36,11 @@ class SquaremapMap {
     showControls;
 
     constructor() {
+        this.hideNavbar = this.getUrlParam("hide_navbar", "false") === "true";
+        this.hideSidebar = this.getUrlParam("hide_sidebar", "false") === "true";
+        document.body.classList.toggle("no-navbar", this.hideNavbar);
+        document.body.classList.toggle("no-sidebar", this.hideSidebar);
+
         this.map = L.map("map", {
             crs: L.CRS.Simple,
             center: [0, 0],
@@ -211,6 +216,12 @@ class SquaremapMap {
         }
         if (!this.showControls) {
             link += "&show_controls=false";
+        }
+        if (this.hideNavbar) {
+            link += "&hide_navbar=true";
+        }
+        if (this.hideSidebar) {
+            link += "&hide_sidebar=true";
         }
         if (!this.coordinates.showCoordinates) {
             link += "&show_coordinates=false";

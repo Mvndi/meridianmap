@@ -46,6 +46,13 @@ input {
 }
 
 /* ---------------------------------------------------------------- top bar */
+body.no-navbar {
+    --bar: 0px;
+}
+body.no-navbar #topbar,
+body.no-sidebar #msidebar {
+    display: none;
+}
 /* ---------------------------------------------------------------- map */
 #map {
     position: absolute;
