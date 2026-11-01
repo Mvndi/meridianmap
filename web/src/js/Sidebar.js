@@ -74,6 +74,45 @@ class Sidebar {
         this.playerEmpty = document.getElementById("player-empty");
         this.playerSearch = document.getElementById("player-search");
         this.playerSearch.addEventListener("input", () => this.filterPlayers());
+        this.townSearch = document.getElementById("town-search");
+        this.townSearch.addEventListener("input", () => this.renderTowns());
+    }
+    renderTowns() {
+        const towns = S.worldList?.curWorld?.towns ?? new Map();
+        const query = this.townSearch.value.trim().toLowerCase().replaceAll("_", " ");
+        const results = [...towns.entries()]
+            .filter(([id]) => S.mapModes.data.towns[id]?.name.toLowerCase().replaceAll("_", " ").includes(query))
+            .sort(([a], [b]) => S.mapModes.data.towns[a].name.localeCompare(S.mapModes.data.towns[b].name));
+        document.getElementById("town-count").textContent = String(results.length);
+        document
+            .getElementById("town-list")
+            .replaceChildren(...results.map(([id, town]) => this.createTownRow(id, town)));
+        document.getElementById("town-meta").textContent = S.mapModes.failed
+            ? "Town information is unavailable. Retrying shortly."
+            : !S.mapModes.loaded
+              ? "Loading towns…"
+              : !towns.size
+                ? "No towns on this world."
+                : !results.length
+                  ? "No towns match your search."
+                  : `${results.length} towns · click to locate`;
+    }
+    createTownRow(id, town) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "srow";
+        const name = document.createElement("span");
+        name.className = "s-item";
+        name.textContent = S.mapModes.data.towns[id].name.replaceAll("_", " ");
+        button.append(name);
+        button.addEventListener("click", () => {
+            S.playerList.followPlayerMarker(null);
+            const marker = town.marker;
+            if (marker.getBounds) S.map.fitBounds(marker.getBounds(), { padding: [30, 30] });
+            else S.map.setView(marker.getLatLng(), S.worldList.curWorld.zoom.max);
+            marker.fire("click", { latlng: marker.getLatLng?.() ?? marker.getBounds().getCenter() });
+        });
+        return button;
     }
     setOpen(open) {
         this.open = open;

@@ -166,6 +166,7 @@ class MapModes {
         }
         this.render();
         S.sidebar.renderToggles();
+        S.sidebar.renderTowns();
     }
 
     applyLayer(layer) {

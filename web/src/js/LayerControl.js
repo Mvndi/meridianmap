@@ -105,6 +105,7 @@ class LayerControl {
         S.mapModes?.plots.attach();
         S.markets?.attach();
         S.markets?.render();
+        S.sidebar.renderTowns();
     }
     /**
      * @param world {World}

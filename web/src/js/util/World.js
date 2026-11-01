@@ -36,6 +36,7 @@ class World {
         this.type = json.type;
         this.display_name = json.display_name;
         this.markerLayers = new Map();
+        this.towns = new Map();
         this.player_tracker = {};
         this.marker_update_interval = 5;
         this.tiles_update_interval = 15;
@@ -77,6 +78,7 @@ class World {
     }
     unload() {
         this.markerEtag = null;
+        this.towns.clear();
         S.playerList.clearPlayerMarkers();
         const keys = Array.from(this.markerLayers.keys());
         for (let i = 0; i < keys.length; i++) {
@@ -150,6 +152,7 @@ class World {
             if (active.has(id)) continue;
             S.layerControl.removeOverlay(layer);
             this.markerLayers.delete(id);
+            if (id === "towny") this.towns.clear();
             changed = true;
         }
         // iterate layers
@@ -168,6 +171,7 @@ class World {
             }
 
             changed = true;
+            if (entry.id === "towny") this.towns.clear();
             // setup the layer
             layer = new L.LayerGroup();
             layer.order = entry.order;
@@ -208,10 +212,16 @@ class World {
                 if (marker != null) {
                     marker.addTo(layer);
                     S.mapModes?.bindMarker(layer, marker);
+                    if (marker.marker._townId) {
+                        const id = marker.marker._townId;
+                        if (!this.towns.has(id) || String(marker.id).startsWith("town_icon_"))
+                            this.towns.set(id, marker);
+                    }
                 }
             }
         }
         if (changed) S.mapModes?.apply();
+        S.sidebar.renderTowns();
     }
 }
 

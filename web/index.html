@@ -407,6 +407,29 @@
                     </div>
                 </section>
 
+                <section class="cat" id="cat-towns" data-open="false">
+                    <button class="cat-h" type="button" aria-expanded="false">
+                        <span class="cat-t">Towns</span>
+                        <span id="town-count" class="chip">0</span>
+                        <svg class="chev" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+                            <path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                    </button>
+                    <div class="cat-b" hidden>
+                        <input
+                            id="town-search"
+                            class="search"
+                            type="search"
+                            placeholder="Find a town"
+                            autocomplete="off"
+                            spellcheck="false"
+                            aria-label="Find a town"
+                        />
+                        <p id="town-meta" class="meta" aria-live="polite">Loading towns…</p>
+                        <div id="town-list" class="slist"></div>
+                    </div>
+                </section>
+
                 <section class="cat" id="cat-markets" data-open="false">
                     <button class="cat-h" type="button" aria-expanded="false">
                         <span class="cat-t">Markets</span>
