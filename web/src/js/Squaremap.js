@@ -123,7 +123,7 @@ class SquaremapMap {
         );
     }
     async loadPolygonRenderer() {
-        if (this.getUrlParam("renderer", "canvas") !== "webgl" || !window.WebGLRenderingContext) return;
+        if (this.getUrlParam("renderer", "webgl") !== "webgl" || !window.WebGLRenderingContext) return;
         try {
             const { createPolygonRenderer } = await import("./WebGLRenderer.js");
             this.polygonRenderer = createPolygonRenderer();
