@@ -4,9 +4,9 @@ import { S } from "./Squaremap.js";
 const PLOT_ICON = L.divIcon({
     className: "religious-plot-icon",
     html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8 12 2l10 6v2H2Zm3 4h3v7H5Zm6 0h3v7h-3Zm6 0h3v7h-3ZM2 21h20v2H2Z"/></svg>',
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    tooltipAnchor: [0, -12],
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+    tooltipAnchor: [0, -9],
 });
 const FALLBACK_COLOR = "#b797c4";
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;

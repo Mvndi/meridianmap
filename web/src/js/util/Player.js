@@ -42,18 +42,17 @@ class Player {
         this.tooltip = L.tooltip({
             permanent: true,
             direction: "top",
-            offset: [0, -5],
+            offset: [0, -3.75],
             className: "name-tag",
             pane: "nameplate",
             content: this.makeNameplateContent(json),
         });
         this.marker = L.marker(S.toLatLng(this.x, this.z), {
-            // Meridian: the direction arrow at three quarters of its old size, so a few hundred players don't bury the map
             icon: L.icon({
                 iconUrl: "images/icon/player.png",
-                iconSize: [13, 12],
-                iconAnchor: [6, 7],
-                tooltipAnchor: [0, -7],
+                iconSize: [9.75, 9],
+                iconAnchor: [4.5, 5.25],
+                tooltipAnchor: [0, -5.25],
                 className: "parrow",
             }),
             title: json.name,

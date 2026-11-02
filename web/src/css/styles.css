@@ -1009,8 +1009,8 @@ body.panel-closed #msidebar-toggle svg {
 }
 
 .religious-plot-icon svg {
-    width: 24px;
-    height: 24px;
+    width: 100%;
+    height: 100%;
     fill: currentColor;
     stroke: #352b24;
     stroke-width: 0.7px;

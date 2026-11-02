@@ -171,10 +171,10 @@ class Icon extends Marker {
         this.marker = new ViewportMarker(S.toLatLng(point.x, point.z), {
             icon: L.icon({
                 iconUrl: `images/icon/registered/${opts.pop("icon")}.png`,
-                iconSize: [size.x, size.z],
-                iconAnchor: [anchor.x, anchor.z],
-                popupAnchor: [tooltipAnchor.x, tooltipAnchor.z],
-                tooltipAnchor: [tooltipAnchor.x, tooltipAnchor.z],
+                iconSize: [size.x * 0.75, size.z * 0.75],
+                iconAnchor: [anchor.x * 0.75, anchor.z * 0.75],
+                popupAnchor: [tooltipAnchor.x * 0.75, tooltipAnchor.z * 0.75],
+                tooltipAnchor: [tooltipAnchor.x * 0.75, tooltipAnchor.z * 0.75],
             }),
         });
         this.popup_sticky = false;

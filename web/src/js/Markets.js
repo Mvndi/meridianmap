@@ -6,9 +6,9 @@ const REFRESH_MS = 15_000;
 const MAX_LISTINGS = 150;
 const MARKET_ICON = L.icon({
     iconUrl: "images/icon/market.png",
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    tooltipAnchor: [0, -12],
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+    tooltipAnchor: [0, -9],
 });
 const nice = (value) =>
     String(value || "")
